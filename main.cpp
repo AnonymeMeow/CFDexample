@@ -28,7 +28,6 @@ int scarf_main(int argc, char *argv[])
     return 0;
 }
 
-#define GLOB
 #include "comm.h"
 #include "chemdata.h"
 
