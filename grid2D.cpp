@@ -10,7 +10,7 @@
 #include<stdlib.h>
 #include<math.h>
 
-int grid_main(int argc, char* argv[])
+int grid(int argc, char* argv[])
 {
 	int i, j, ic, ic1, ic2, nc,id, ir1, ii, jj, gtype,
 		jr, jr1, I0, J0, i1, ik, nik, ni, nj, ir, Ng, nproc;
@@ -400,4 +400,3 @@ int grid_main(int argc, char* argv[])
 
     return(nproc);
 }
-

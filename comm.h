@@ -18,7 +18,6 @@
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
 #define MAX(a,b) (((a) > (b)) ? (a) : (b))
 
-
 #define MPI_RUN
 
 inline int I0, J0, neqv, neqn, nproc, MyID;
