@@ -54,18 +54,6 @@ void freeU(int nlen, struct strct_U *U)
 		free(U->q[i]);
 
 	free(U->q);
-
-	if(config1.gasModel != 0)
-	{
-		for(i=0; i<nlen; i++)
-		{
-			free(U->qs[i]);
-			free(U->di[i]);
-		}
-	}
-	free(U->qs);
-	free(U->di);
-
 }
 /*---------------------------------------------------
  * free memory of dU variables
@@ -102,21 +90,8 @@ void freeUv()
 	free(Uv.T_xi);
 	free(Uv.T_et);
 
-	if((config1.visModel != 0) && (config1.gasModel != 0))
-	{
-		for(i=0; i<nlen; i++)
-		{
-			free(Uv.qs_xi[i]);
-			free(Uv.qs_et[i]);
-		}
-		free(Uv.qs_xi);
-		free(Uv.qs_et);
-	}
-	else
-	{
-		free(Uv.qs_xi);
-		free(Uv.qs_et);
-	}
+	free(Uv.qs_xi);
+	free(Uv.qs_et);
 }
 /*---------------------------------------------------
  * free memory of other variables
@@ -142,20 +117,4 @@ void freeOthers()
 	}
 	free(qo);
 	free(rhs);
-	if(config1.gasModel != 0)
-	{
-		for(ic=0; ic<nc; ic++)
-			free(qso[ic]);
-
-		for(ic=0; ic<nc; ic++)
-		{
-			for(ns=0; ns<config1.nspec; ns++)
-			{
-				free(dsdq[ic][ns]);
-			}
-			free(dsdq[ic]);
-		}
-		free(dsdq);
-	}
-	free(qso);
 }

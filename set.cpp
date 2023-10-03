@@ -5,10 +5,7 @@
  *
  */
 
-#include<math.h>
-
 #include"comm.h"
-#include"chemdata.h"
 
 /*---------------------------------------------------
  * set and initialize the job
@@ -19,17 +16,11 @@ void setjob()
 
 	void initjob();
 	void importjob();
-	void nondimen();
 	void setGeom();
 
 	void allocateU(int nlen, struct strct_U *U);
 	void allocateUv();
 	void allocateOthers();
-
-	if(config1.gasModel == 0)
-		neqn = neqv;
-	else
-		neqn = neqv + config1.nspec -1;
 
 	nc  = config1.ni*config1.nj;
 	nc1 = I0*J0;
@@ -38,8 +29,6 @@ void setjob()
 	allocateU(nc1, &Ug);
 	allocateUv();
 	allocateOthers();
-
-	nondimen();
 
 	if(config1.newrun == 1)
 		initjob();
@@ -54,10 +43,10 @@ void setjob()
  * ------------------------------------------------*/
 void initjob()
 {
-	int i, mni, i0, ir, ic, icp;
+	int i, mni, i0, ir, ic, icp, x_sh;
 	double dis;
 	void assigncells(int i1, int in, int j1, int jn, double u,
-			         double v, double t, double p, double *qs);
+			         double v, double t, double p);
 
 	config2.t0 = 0;
 	config1.iStep0 = 1;
@@ -74,46 +63,36 @@ void initjob()
 			if((mesh.x[ic]<=dis) && (dis<mesh.x[icp]))
 				break;
 		}
-	    config1.x_sh = i; 
+	    x_sh = i; 
 	}
 
 	// get the position of the diaphragm
-    i0 = config1.x_sh/config1.ni; // the integer part
-    ir = config1.x_sh%config1.ni; // the remainder part
-
-#ifdef MPI_RUN
+    i0 = x_sh/config1.ni; // the integer part
+    ir = x_sh%config1.ni; // the remainder part
 
 	if(MyID < i0)
-		assigncells(0,config1.ni, 0,config1.nj, inc[0].u,inc[0].v,inc[0].t,inc[0].p, inc[0].ys);
+		assigncells(0,config1.ni, 0,config1.nj, inc[0].u,inc[0].v,inc[0].t,inc[0].p);
 	else if((MyID == i0) && (ir != 0))
 	{
-		assigncells(0,ir, 0,config1.nj, inc[0].u,inc[0].v,inc[0].t,inc[0].p, inc[0].ys);
-		assigncells(ir,config1.ni, 0,config1.nj, inc[1].u,inc[1].v,inc[1].t,inc[1].p, inc[1].ys);
+		assigncells(0,ir, 0,config1.nj, inc[0].u,inc[0].v,inc[0].t,inc[0].p);
+		assigncells(ir,config1.ni, 0,config1.nj, inc[1].u,inc[1].v,inc[1].t,inc[1].p);
 	} 
 	else
-		assigncells(0,config1.ni, 0,config1.nj, inc[1].u,inc[1].v,inc[1].t,inc[1].p, inc[1].ys);
+		assigncells(0,config1.ni, 0,config1.nj, inc[1].u,inc[1].v,inc[1].t,inc[1].p);
 
 	/*
 	MPI_Barrier(MPI_COMM_WORLD); // Lock Here!
 	*/
-#else
-
-	assigncells(i0,ir, 0,config1.nj, inc[0].u,inc[0].v,inc[0].t,inc[0].p, inc[0].ys);
-	assigncells(ir,config1.ni, 0,config1.nj, inc[1].u,inc[1].v,inc[1].t,inc[1].p,inc[1].ys);
-
-#endif
 }
 /*-----------------------------------------------------------
  * Assign initial value to each cells
  * ---------------------------------------------------------*/
 void assigncells(int i1, int in, int j1, int jn, double u,
-		         double v, double t, double p, double *qs)
+		         double v, double t, double p)
 {
-	double ein, es, ek, rgas1, RT;
-	double getes(int ns, double t);
-	double getrgas(double qs[]);
+	double ek, rgas1, RT;
 
-	rgas1 = (ru/config2.molWeight)/rgasRef;
+	rgas1 = (ru/config2.molWeight);
 
 	for(int i=i1; i<in; i++)
 	{
@@ -132,20 +111,7 @@ void assigncells(int i1, int in, int j1, int jn, double u,
 			{
 				RT = rgas1*t;
 				U.q[ic][0] = p/RT;
-				U.q[ic][3] = ek + RT/(config2.gam0-1)*Upsilon;
-			}
-			else
-			{
-				ein = 0.;
-				for(int ns = 0; ns<config1.nspec; ns++)
-				{
-					U.qs[ic][ns] = qs[ns];
-					es = getes(ns, t);
-					ein = ein + qs[ns]*es;
-				}
-				U.q[ic][3] = ek + ein;
-				rgas1 = getrgas(qs);
-				U.q[ic][0] = p/(rgas1*t);
+				U.q[ic][3] = ek + RT/(config2.gam0-1);
 			}
 		}
 	}
@@ -160,7 +126,7 @@ void importjob()
 	char linebuf[200], varname[200], filename[30];
 	struct strct_field
 	{
-		double *rho, *u, *v, *p, *t, *e, *ga, **qs;
+		double *rho, *u, *v, *p, *t, *e, *ga;
 	} Uf;
 	FILE *fp;
 	void endjob();
@@ -176,15 +142,6 @@ void importjob()
 		Uf.p   = (double*)malloc(sizeof(double)*nc);
 		Uf.t   = (double*)malloc(sizeof(double)*nc);
 		Uf.e   = (double*)malloc(sizeof(double)*nc);
-		if(config1.gasModel != 0)
-		{
-			Uf.ga   = (double*)malloc(sizeof(double)*nc);
-			Uf.qs = (double**)malloc(sizeof(double*)*nc);
-			for(ic=0; ic<nc; ic++)
-				Uf.qs[ic] = (double*)malloc(sizeof(double)*config1.nspec);
-		}
-		else
-			Uf.qs = NULL;
 
 		sprintf(filename, "nstep%d_field.dat", config1.iStep0 -1);
 		fp = fopen(filename,"r");
@@ -205,12 +162,6 @@ void importjob()
 				ic = i*config1.nj + j;
 				fscanf(fp," %lf %lf %lf %lf %lf %lf %lf %lf",&dum, &dum,
 						&Uf.rho[ic], &Uf.u[ic], &Uf.v[ic], &Uf.p[ic], &Uf.t[ic], &Uf.e[ic]);
-				if(config1.gasModel != 0)
-				{
-					fscanf(fp," %lf",&Uf.ga[ic]);
-					for(ns=0; ns<config1.nspec; ns++)
-						fscanf(fp," %le",&Uf.qs[ic][ns]);
-				}
 			}
 		  fclose(fp);
 
@@ -233,23 +184,13 @@ void importjob()
 					y   = mesh.et[ic1];
 					fprintf(fp," %lf %lf %lf %lf %lf %lf %lf %lf",x, y,
 							Uf.rho[ic],Uf.u[ic],Uf.v[ic],Uf.p[ic],Uf.t[ic],Uf.e[ic]);
-					if(config1.gasModel != 0)
-					{
-						fprintf(fp," %lf",Uf.ga[ic]);
-						for(ns=0; ns<config1.nspec; ns++)
-							fprintf(fp," %le",Uf.qs[ic][ns]);
-					}
 					fprintf(fp, "\n");
 				}
 			fclose(fp);
 		}
 	}
 
-	/*
-	#ifdef MPI_RUN
-	MPI_Barrier(MPI_COMM_WORLD); // Lock Here!
-	#endif
-	*/
+	// MPI_Barrier(MPI_COMM_WORLD); Lock Here!
 
 	/*----3. Each processor read the solution file----*/
     sprintf(filename, "tcv%d.dat", MyID);
@@ -272,12 +213,6 @@ void importjob()
 				printf("format error in tcv.dat \n");
 				exit(0);
 			}
-			if(config1.gasModel != 0)
-			{
-				fscanf(fp," %lf",&U.gam[ic]);
-				for(ns=0; ns<config1.nspec; ns++)
-					if(fscanf(fp," %le",&U.qs[ic][ns]) != 1){printf("format error in tcv.dat \n");endjob();}
-			}
 
 			U.q[ic][0] = rho;
 			U.q[ic][1] = u;
@@ -296,102 +231,6 @@ void importjob()
 		free(Uf.p);
 		free(Uf.t);
 		free(Uf.e);
-		if(config1.gasModel != 0)
-		{
-			for(ic=0; ic<nc; ic++)
-				free(Uf.qs[ic]);
-			free(Uf.qs);
-		}
-	}
-}
-
-/*---------------------------------------------------
- * Conduct the non-dimensional process
- * ------------------------------------------------*/
-void nondimen()
-{
-	int ns;
-	double rgas0, temp, ratio1, ratio2;
-	FILE *outId;
-
-	if(config1.gasModel == 0)
-		rgas0  = (ru/config2.molWeight);
-	else
-	{
-		temp = 0.;
-		for(ns = 0; ns<config1.nspec; ns++)
-		{
-			temp = temp + specData[ns].qsin[1]/specData[ns].wm;
-		}
-		rgas0 = ru*temp;
-	}
-
-	if(config1.nonDi)
-	{
-		rgasRef = rgas0;
-		LRef    = config2.Lx;
-		temRef  = config2.temRef;
-		preRef  = config2.preRef;
-		ratio1  = config2.temRef/config2.suthC1;
-		ratio2  = (config2.suthC1 + config2.suthC2)/(config2.temRef+ config2.suthC2);
-		muRef   = config2.muRef*ratio2*pow(ratio1,1.5);
-
-		uRef    = config2.MaRef*sqrt(config2.gam0*rgasRef*temRef);
-		tRef    = LRef/uRef;
-		cvRef   = rgasRef/(config2.gam0 - 1.);
-		condRef = muRef*(config2.gam0*cvRef)/config2.Pr0;
-
-		if(config2.Re0 < 10.)
-		{
-			rhoRef  = preRef/(rgas0*temRef);
-			config2.Re0 = rhoRef*uRef*LRef/muRef;
-			if(MyID == 0)
-			{
-				outId = fopen("outInfo.dat", "a");
-				fprintf(outId, "Reynolds number is recalculated by reference condition: \n");
-				fprintf(outId,"Re = %lf: \n",config2.Re0);
-				fclose(outId);
-			}
-		}
-		else
-		{
-			/*To keep consistency, the reference pressure is
-			 * calculated by reference density, gas constant and temperature,
-			 * which means the input "config2.preRef" is unused */
-			rhoRef  = muRef*config2.Re0/(uRef*LRef);
-			preRef  = rhoRef*rgasRef*temRef;
-			if(MyID == 0)
-			{
-				outId = fopen("outInfo.dat", "a");
-				fprintf(outId, "Under the given Reynolds number, the reference pressure is: \n");
-				fprintf(outId,"P = %lf: (N/m^2)\n", preRef);
-				fclose(outId);
-			}
-		}
-		diffRef = muRef/(rhoRef*config2.Sc0);
-		Upsilon = 1./(config2.gam0*config2.MaRef*config2.MaRef);
-	}
-	else
-	{
-		LRef    = 1.;
-		uRef    = 1.;
-		tRef    = 1.;
-		cvRef   = 1.;
-		rhoRef  = 1.;
-		temRef  = 1.;
-		preRef  = 1.;
-		rgasRef = 1.;
-		muRef   = 1.;
-		condRef = 1.;
-		Upsilon = 1.;
-		diffRef = 1.;
-		if((MyID==0) && (config1.nonDi!=0))
-		{
-			outId = fopen("outInfo.dat", "a");
-			fprintf(outId, "the velocity for the dt via CFL number is calculated by: \n");
-			fprintf(outId, "config2.MaRef*sqrt(config2.gam0*(ru/config2.molWeight)*config2.temRef) \n");
-			fclose(outId);
-		}
 	}
 }
 
@@ -516,23 +355,6 @@ void allocateU(int nlen, struct strct_U *U)
 
 	for(i=0; i<nlen; i++)
 		U->q[i]  = (double*)malloc(sizeof(double)*neqv);
-
-	if(config1.gasModel == 0)
-	{
-		U->di = NULL;
-		U->qs = NULL;
-	}
-	else
-	{
-		U->qs  = (double**)malloc(sizeof(double*)*nlen);
-		U->di  = (double**)malloc(sizeof(double*)*nlen);
-		for(i=0; i<nlen; i++)
-		{
-			U->qs[i] = (double*)malloc(sizeof(double)*config1.nspec);
-			U->di[i] = (double*)malloc(sizeof(double)*config1.nspec);
-		}
-	}
-
 }
 
 /*---------------------------------------------------
@@ -588,46 +410,6 @@ void allocateUv()
 			Uv.qs_xi = NULL;
 			Uv.qs_et = NULL;
 		}
-		else
-		{
-			Uv.qs_xi = (double**)malloc(sizeof(double*)*nlen);
-			Uv.qs_et = (double**)malloc(sizeof(double*)*nlen);
-			for(i=0; i<nlen; i++)
-			{
-				Uv.qs_xi[i] = (double*)malloc(sizeof(double)*config1.nspec);
-				Uv.qs_et[i] = (double*)malloc(sizeof(double)*config1.nspec);
-			}
-		}
-	}
-	else
-	{
-		Uv.fu1 = NULL;
-		Uv.fu2 = NULL;
-		Uv.fu3 = NULL;
-		Uv.fv1 = NULL;
-		Uv.fv2 = NULL;
-		Uv.fv3 = NULL;
-		Uv.fuv = NULL;
-		Uv.fe1 = NULL;
-		Uv.fe2 = NULL;
-		Uv.gu1 = NULL;
-		Uv.gu2 = NULL;
-		Uv.gu3 = NULL;
-		Uv.gv1 = NULL;
-		Uv.gv2 = NULL;
-		Uv.gv3 = NULL;
-		Uv.guv = NULL;
-		Uv.ge1 = NULL;
-		Uv.ge2 = NULL;
-
-		Uv.u_xi  = NULL;
-		Uv.u_et  = NULL;
-		Uv.v_xi  = NULL;
-		Uv.v_et  = NULL;
-		Uv.T_xi  = NULL;
-		Uv.T_et  = NULL;
-		Uv.qs_xi = NULL;
-		Uv.qs_et = NULL;
 	}
 }
 
@@ -646,22 +428,6 @@ void allocateOthers()
 	for(ic=0; ic<nc; ic++)
 	{
 		qo[ic]   = (double*)malloc(sizeof(double)*neqv);
-		rhs[ic]  = (double*)malloc(sizeof(double)*neqn);
-	}
-	if(config1.gasModel == 0)
-		qso  = NULL;
-	else
-	{
-		qso  = (double**)malloc(sizeof(double*)*nc);
-		for(ic=0; ic<nc; ic++)
-			qso[ic]  = (double*)malloc(sizeof(double)*config1.nspec);
-
-		dsdq = (double***)malloc(sizeof(double**)*nc);
-		for(ic=0; ic<nc; ic++)
-		{
-			dsdq[ic] = (double**)malloc(sizeof(double*)*config1.nspec);
-			for(ns=0; ns<config1.nspec; ns++)
-				dsdq[ic][ns] = (double*)malloc(sizeof(double)*neqn);
-		}
+		rhs[ic]  = (double*)malloc(sizeof(double)*neqv);
 	}
 }

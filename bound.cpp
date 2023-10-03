@@ -15,10 +15,8 @@ void boundX()
 	int ir = config1.ni + config1.Ng;
 	int jr = config1.nj + config1.Ng;
 
-#ifdef MPI_RUN
 	/*---- assign MPI boundary ----*/
-
-	 /* left side, solid wall */
+	/* left side, solid wall */
 	if(MyID == 0)
 	{
         int ii = 2*config1.Ng - 1; // 5 ->  0, 1, 2
@@ -38,14 +36,6 @@ void boundX()
 				Ug.gam[ic]  =  Ug.gam[ic1];
 			    Ug.mu[ic]   =  Ug.mu[ic1];
 			    Ug.kt[ic]   =  Ug.kt[ic1];
-	    		if(config1.gasModel != 0)
-				{
-	    			for(int ns = 0; ns<config1.nspec; ns++)
-	    			{
-	    				Ug.qs[ic][ns] =  Ug.qs[ic1][ns];
-	    				Ug.di[ic][ns] =  Ug.di[ic1][ns];
-	    			}
-				}
 		    }
 		    ii -= 1;
     	}
@@ -69,14 +59,6 @@ void boundX()
 		    	Ug.gam[ic]  = mpiRecv_ql[ic1].ga;
 		    	Ug.mu[ic]   = mpiRecv_ql[ic1].mu;
 		    	Ug.kt[ic]   = mpiRecv_ql[ic1].kt;
-	    		if(config1.gasModel != 0)
-				{
-	    			for(int ns = 0; ns<config1.nspec; ns++)
-	    			{
-	    				Ug.qs[ic][ns] =  mpiRecv_ql[ic1].qs[ns];
-	    				Ug.di[ic][ns] =  mpiRecv_ql[ic1].di[ns];
-	    			}
-				}
 		    }
 		}
 	}
@@ -102,14 +84,6 @@ void boundX()
 				Ug.gam[ic]  =  Ug.gam[ic1];
 				Ug.mu[ic]   =  Ug.mu[ic1];
 				Ug.kt[ic]   =  Ug.kt[ic1];
-				if(config1.gasModel != 0)
-				{
-					for(int ns = 0; ns<config1.nspec; ns++)
-					{
-						Ug.qs[ic][ns] =  Ug.qs[ic1][ns];
-						Ug.di[ic][ns] =  Ug.di[ic1][ns];
-					}
-				}
 			}
 			ii -= 1;
 		}
@@ -135,77 +109,9 @@ void boundX()
 				Ug.gam[ic]  = mpiRecv_qr[ic1].ga;
 				Ug.mu[ic]   = mpiRecv_qr[ic1].mu;
 				Ug.kt[ic]   = mpiRecv_qr[ic1].kt;
-	    		if(config1.gasModel != 0)
-				{
-	    			for(int ns = 0; ns<config1.nspec; ns++)
-	    			{
-	    				Ug.qs[ic][ns] = mpiRecv_qr[ic1].qs[ns];
-	    				Ug.di[ic][ns] = mpiRecv_qr[ic1].di[ns];
-	    			}
-				}
 			}
 		}
 	}
-#else
-	for(int j=config1.Ng; j<jr; j++) // for actual j cells, 3 -> NJ + 2
-	{
-		/* left side, wall*/
-
-		int ii = 2*config1.Ng - 1; // 5, 4, 3 ->  0, 1, 2
-		for(int i=0; i<config1.Ng; i++)
-		{
-			int ic  = i*J0 + j;
-			int ic1 = ii*J0 + j;
-
-			Ug.q[ic][0] =  Ug.q[ic1][0];
-			Ug.q[ic][1] = -Ug.q[ic1][1];
-			Ug.q[ic][2] = -Ug.q[ic1][2];
-			Ug.q[ic][3] =  Ug.q[ic1][3];
-			Ug.tem[ic]  =  Ug.tem[ic1];
-			Ug.pre[ic]  =  Ug.pre[ic1];
-
-			Ug.gam[ic]  =  Ug.gam[ic1];
-			Ug.mu[ic]   =  Ug.mu[ic1];
-			Ug.kt[ic]   =  Ug.kt[ic1];
-			if(config1.gasModel != 0)
-			{
-				for(int ns=0; ns<config1.nspec; ns++)
-				{
-					Ug.qs[ic][ns] = Ug.qs[ic1][ns];
-					Ug.di[ic][ns] = Ug.di[ic1][ns];
-				}
-			}
-			ii -= 1;
-		}
-			/* right side, wall*/
-		ii = ir - 1;
-		for(int i=ir; i<I0; i++) //N+2, N+1, N ->  N+3,N+4,N+5
-		{
-			int ic = i*J0 + j;
-			int ic1 = ii*J0 + j;
-
-			Ug.q[ic][0] =  Ug.q[ic1][0];
-			Ug.q[ic][1] = -Ug.q[ic1][1];
-			Ug.q[ic][2] = -Ug.q[ic1][2];
-			Ug.q[ic][3] =  Ug.q[ic1][3];
-			Ug.tem[ic]  =  Ug.tem[ic1];
-			Ug.pre[ic]  =  Ug.pre[ic1];
-
-			Ug.gam[ic]  =  Ug.gam[ic1];
-			Ug.mu[ic]   =  Ug.mu[ic1];
-			Ug.kt[ic]   =  Ug.kt[ic1];
-			if(config1.gasModel != 0)
-			{
-				for(int ns=0; ns<config1.nspec; ns++)
-				{
-					Ug.qs[ic][ns] = Ug.qs[ic1][ns];
-					Ug.di[ic][ns] = Ug.di[ic1][ns];
-				}
-			}
-			ii -= 1;
-		}
-	}
-#endif
 }
 
 /*---------------------------------------------------
@@ -235,14 +141,6 @@ void boundY()
 			Ug.gam[ic]  =  Ug.gam[ic1];
 			Ug.mu[ic]   =  Ug.mu[ic1];
 			Ug.kt[ic]   =  Ug.kt[ic1];
-			if(config1.gasModel != 0)
-			{
-				for(int ns = 0; ns<config1.nspec; ns++)
-				{
-					Ug.qs[ic][ns] =  Ug.qs[ic1][ns];
-					Ug.di[ic][ns] =  Ug.di[ic1][ns];
-				}
-			}
 			jj -= 1;
 		}
 
@@ -263,14 +161,6 @@ void boundY()
 		    Ug.gam[ic]  =  Ug.gam[ic1];
 		    Ug.mu[ic]   =  Ug.mu[ic1];
 		    Ug.kt[ic]   =  Ug.kt[ic1];
-	    	if(config1.gasModel != 0)
-			{
-	    		for(int ns = 0; ns<config1.nspec; ns++)
-	    		{
-	    			Ug.qs[ic][ns] =  Ug.qs[ic1][ns];
-	    			Ug.di[ic][ns] =  Ug.di[ic1][ns];
-	    		}
-			}
 	    	jj -= 1;
 		}
     }

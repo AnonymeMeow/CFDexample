@@ -23,15 +23,14 @@
 inline int I0; // Number of cells in x direction for each thread, including ghost cells
 inline int J0; // Number of cells in y direction, including ghost cells
 inline int neqv; // Solution variables without chemical terms
-inline int neqn;
 inline int nthread; // Number of threads
-inline int MyID;
+inline int MyID; // ID of the current thread (not needed)
 inline double dxc; // Non-dimensional length of each cell in xi direction
 inline double dyc; // Non-dimensional length of each cell in et direction
 
 inline struct strct_configInt
 {
-	int timeOrder, transModel, x_sh, nmix, nspec, nreac, thermo_base;
+	int timeOrder; // Time order of the Runge-Kutta method (?)
 	int ni; // Number of cells in x direction for each thread
 	int nj; // Number of cells in y direction
 	int Ng; // Number of ghost cells
@@ -43,14 +42,15 @@ inline struct strct_configInt
 	int nStep; // Total time step of simulation
 	int nRamp; // Time steps for the program march from CFL0 to CFL1 (or dt0 to dt1)
 	int Samples; // Intervals for the program to output results
-	int ifilm;
+	int ifilm; // (?)
 	int gasModel; // Whether real-gas flow (or perfect gas flow)
 	int visModel; // Whether viscous flow
 	int reacModel; // Whether have chemical reaction
 }config1;
+
 inline struct strct_configDouble
 {
-	double molWeight, gam0, Pr0, Sc0, Re0, condRef, diffRef;
+	double molWeight, gam0, Pr0;
 	double t0; // The initial time of simulation
 	double x0; // The initial position of the shock
 	double Lx; // Length of the rectangle in x direction
@@ -66,24 +66,19 @@ inline struct strct_configDouble
 	double p1, T1, u1, v1, p2, T2, u2, v2; // Initial condition
 }config2;
 
-/*- reference state -*/
-inline double LRef, uRef, cvRef, rhoRef, tRef, temRef, preRef,
-       rgasRef, muRef, condRef, diffRef, Upsilon;
-
 /*- MPI related -*/
 #ifdef MPI_RUN
-inline int nachbar_rechts, nachbar_links, NMAXproc;
+inline int NMAXproc;
 inline struct strct_gcelltype
 {
 	double rho, u, v, e, p, t, mu, kt, ga, qs[6], di[6];
-}mpiSend_ql[mpicell], mpiSend_qr[mpicell], mpiRecv_ql[mpicell], mpiRecv_qr[mpicell];
+}mpiRecv_ql[mpicell], mpiRecv_qr[mpicell];
 #endif
 
 /* Origin flow variables */
 inline struct strct_U
 {
 	double ** q; // (rho, u, v, e)
-	double ** qs;
 	double * pre; // Pressure
 	double * tem; // Temperature
 	double * mu;
@@ -91,7 +86,6 @@ inline struct strct_U
 	double * cv;
 	double * rgas;
 	double * gam;
-	double ** di;
 }U, Ug;
 
 /*- viscous related variables -*/
@@ -109,8 +103,8 @@ inline struct strct_Uv
 inline struct strct_flux
 {
 	double* xix, * xiy, * etx, * ety, * yas, * rho,
-		* du, * dv, * dt, ** dqs,
-		* u, * v, * p, * e, * t, * gam, * mu, * kt, ** Ds, ** qs, ** flux;
+		* du, * dv, * dt,
+		* u, * v, * p, * e, * t, * gam, * mu, * kt, ** flux;
 }U1d;
 
 /* Initial conditions */
@@ -120,7 +114,6 @@ inline struct strct_ic
 	double v; // Velocity in y direction
 	double t; // Temperature
 	double p; // Pressure
-	double ys[6];
 }inc[2];
 
 /* Geometry variables (coordinations and derivatives) */
@@ -133,7 +126,7 @@ inline struct strct_metric
 }mesh;
 
 /*- others -*/
-inline double** qo, ** qso, ** rhs, *** dsdq;
+inline double** qo, ** rhs;
 
 void grid();
 void readjob();

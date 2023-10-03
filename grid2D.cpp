@@ -5,7 +5,6 @@
  *  Update for Cylinder grids On Nov.03, 2014
  */
 
-#include<string.h>
 #include<math.h>
 
 #include<iostream>

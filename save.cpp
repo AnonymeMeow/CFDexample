@@ -8,7 +8,6 @@
 #include<string.h>
 #include<math.h>
 #include"comm.h"
-#include"chemdata.h"
 
 /*---------------------------------------------------
  * output flow field variables
@@ -38,12 +37,6 @@ void saveData(int step)
 			x  =  mesh.xi[ic1];
 			y  =  mesh.et[ic1];
 			fprintf(fp, "%lf %lf %lf %lf %lf %lf %lf %lf", x, y, rho, u, v, p, T, e);
-			if(config1.gasModel != 0)
-			{
-				fprintf(fp, " %lf ", U.gam[ic]);
-				for(ns=0; ns<config1.nspec; ns++)
-					fprintf(fp, " %le ", U.qs[ic][ns]);
-			}
 			fprintf(fp, "\n");
 		}
 	fclose(fp);
@@ -96,10 +89,8 @@ void saveData(int step)
 /*---------------------------------------------------
  *  postprocess subroutine
  *  Created on: Apr 7, 2014
- *  Author: chensong
  * ------------------------------------------------*/
 void postprocess(int istep)
-
 {
 	int i, j, ic, nc, ns, id, mni, ni, nj, nproc, dum0;
 	double x, y, rho, u, v, p, T, e, dum;
@@ -107,7 +98,7 @@ void postprocess(int istep)
 	FILE  *fp;
 	struct strct_Up
 	{
-		double *rho, *u, *v, *p, *t, *e, *ga, **qs;
+		double *rho, *u, *v, *p, *t, *e, *ga;
 	} Up;
 	void endjob();
 
@@ -131,14 +122,6 @@ void postprocess(int istep)
 	Up.t      = (double*)malloc(sizeof(double)*nc);
 	Up.e      = (double*)malloc(sizeof(double)*nc);
 	Up.ga     = (double*)malloc(sizeof(double)*nc);
-	if(config1.gasModel != 0)
-	{
-		Up.qs = (double**)malloc(sizeof(double*)*nc);
-		for(ic=0; ic<nc; ic++)
-			Up.qs[ic] = (double*)malloc(sizeof(double)*config1.nspec);
-	}
-	else
-		Up.qs = NULL;
 
     /*--------3. read the solution file--------*/
 	 //printf("reading the solution file... \n");
@@ -159,12 +142,6 @@ void postprocess(int istep)
 				ic = (id*ni + i)*nj + j;
 				fscanf(fp," %lf %lf %lf %lf %lf %lf %lf %lf",&dum, &dum,
 						&Up.rho[ic],&Up.u[ic],&Up.v[ic],&Up.p[ic],&Up.t[ic],&Up.e[ic]);
-				if(config1.gasModel != 0)
-				{
-					fscanf(fp," %lf",&Up.ga[ic]);
-					for(ns=0; ns<config1.nspec; ns++)
-						fscanf(fp," %le",&Up.qs[ic][ns]);
-				}
 				fprintf(fp, "\n");
     	    }
         fclose(fp);
@@ -175,12 +152,6 @@ void postprocess(int istep)
     fp = fopen(filename, "w");
     fprintf(fp, "Title = \"Flow field\"\n");
 	fprintf(fp, "Variables = x, y, rho, u, v, p, T, e");
-	if(config1.gasModel != 0)
-	{
-		fprintf(fp, ", gama");
-		for(ns=0; ns<config1.nspec; ns++)
-			fprintf(fp, ", %s", spname[ns]);
-	}
 	fprintf(fp, "\n");
     fprintf(fp,"ZONE T='1', I= %d, J= %d, f=point \n", mni, nj);
 
@@ -198,12 +169,6 @@ void postprocess(int istep)
     		T   = Up.t[ic];
     		e   = Up.e[ic];
 			fprintf(fp, "%8.4e %8.4e %6.4e %6.4e %6.4e %6.4e %10.4f %6.4e", x, y, rho, u, v, p, T, e);
-			if(config1.gasModel != 0)
-			{
-				fprintf(fp, " %6.4f ", Up.ga[ic]);
-				for(ns=0; ns<config1.nspec; ns++)
-					fprintf(fp, " %8.4e ", Up.qs[ic][ns]);
-			}
 			fprintf(fp, "\n");
     	}
     fclose(fp);
@@ -215,10 +180,4 @@ void postprocess(int istep)
     free(Up.p);
     free(Up.t);
     free(Up.e);
-    if(config1.gasModel != 0)
-    {
-    	for(ic=0; ic<nc; ic++)
-    	   free(Up.qs[ic]);
-    	free(Up.qs);
-    }
 }
