@@ -4,9 +4,10 @@
  *  Created on: 2014.01.14
  *
  */
+
 #include<string.h>
 #include<math.h>
-#include<mpi.h>
+
 #include"comm.h"
 #include"chemdata.h"
 
@@ -51,11 +52,7 @@ void gettherm(int nc, double **q, double **qs, double *p,
 // 				fclose(outId);
 // 				printf("T = %f (K) at at i=%d, j=%d\n", tem, ic/config1.nj, ic%config1.nj);
 // 				printf("The temperature may be unphysical for ideal gas model \n");
-// #ifdef MPI_RUN
-// 				MPI_Abort( MPI_COMM_WORLD, 41);
-// #else
-// 				endjob();
-// #endif
+//				exit(0);
 // 			}
 
 		}
@@ -181,11 +178,7 @@ void gettherm(int nc, double **q, double **qs, double *p,
 							/* At this stage, one can set temperature to the last time step value,
 							 * i.e.  t[ic] = tem; But it is recommended to kill the program and
 							 * examine the running conditions*/
-#ifdef MPI_RUN
-							MPI_Abort( MPI_COMM_WORLD, 42);
-#else
-							endjob();
-#endif
+							exit(0);
 					    }
 					  /*--non-dimension--*/
 					  gam1[ic]  = cp/cv1[ic];
@@ -294,11 +287,7 @@ double getes(int ns, double t)
 	else
 	{
 		printf("[getes] unsupported gasModel\n");
-#ifdef MPI_RUN
-			MPI_Abort( MPI_COMM_WORLD, 43);
-#else
-			endjob();
-#endif
+		exit(0);
 	}
 
 	 return(es);
@@ -364,11 +353,7 @@ void gettrans(int nc, double **qs, double *t, double *gam1,
 		else
 		{
 			printf("unsupported viscosity model... \n");
-#ifdef MPI_RUN
-			MPI_Abort( MPI_COMM_WORLD, 44);
-#else
-			endjob();
-#endif
+			exit(0);
 		}
 	}
 	else
@@ -564,11 +549,7 @@ void gettrans(int nc, double **qs, double *t, double *gam1,
 		else
 		{
 			printf("unsupported viscosity model... \n");
-#ifdef MPI_RUN
-			MPI_Abort( MPI_COMM_WORLD, 45);
-#else
-			endjob();
-#endif
+			exit(0);
 		}
 	}
 }
@@ -1068,5 +1049,3 @@ void tem_derivative(double **dtdq)
 		dtdq[ic][m+2] =  rdum;
 	}
 }
-
-

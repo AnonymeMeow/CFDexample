@@ -965,4 +965,3 @@ void freevFlux(int nlen, struct strct_flux *f)
 	free(f->qs);
 	free(f->flux);
 }
-

@@ -1,4 +1,3 @@
-
 /*
  *  main.c
  *
@@ -7,26 +6,11 @@
  *  Last updated on Oct. 27, 2014
  */
 
-#include <cstdio>
-#include <cstdlib>
+#include "comm.h"
 
 int main(int argc, char* argv[])
 {
-	int grid(int argc, char* argv[]);
-	void startjob(int argc, char* argv[]);
-	void readjob();
-	void setjob();
-	void jobbody();
-	void endjob();
-
-	if (argc == 1)
-	{
-		char cmd[512];
-		sprintf(cmd, "mpiexec -n %d \"%s\" extra_arg", grid(argc, argv), *argv);
-		return system(cmd);
-	}
-
-	startjob(argc, argv);
+	grid();
 	readjob();
 	setjob();
 	jobbody();

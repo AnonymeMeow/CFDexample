@@ -4,12 +4,16 @@
  *  Created on: 2014.1.14.
  *
  */
+
 #include <ctype.h>
 #include <string.h>
 #include <math.h>
-#include <mpi.h>
-#include"comm.h"
-#include"chemdata.h"
+
+#include <fstream>
+#include <iostream>
+
+#include "comm.h"
+#include "chemdata.h"
 
 /*---------------------------------------------------
  * read the necessary information for simulation
@@ -18,9 +22,6 @@ void readjob()
 {
 	void cheminput();
 	void readconfig();
-	void readic();
-	void readmesh();
-	void BcastData();
 
 	neqv = 4; // solution variables without chemical terms
 
@@ -30,13 +31,6 @@ void readjob()
 		if(config1.gasModel != 0)
 			cheminput();
 	}
-
-#ifdef MPI_RUN
-	BcastData();
-#endif
-	readic();
-	readmesh();
-			
 }
 
 /*---------------------------------------------------
@@ -44,70 +38,69 @@ void readjob()
  * ------------------------------------------------*/
 void readconfig()
 {
-	FILE *fp, *outId;
+	std::ifstream config_file("config.dat");
+	std::ofstream log_file("outInfo.dat");
+	if(config_file.fail())
+	{
+		std::cout << "config.dat file not found!" << std::endl;
+		exit(0);
+	}
 
-	fp    = fopen("config.dat", "r");
-	outId = fopen("outInfo.dat", "a");
-	if(fp == NULL){printf("config.dat file not found! \n");exit(0);}
+	config_file >> config2.t0 >> config2.x0
+				>> config1.newrun >> config1.nonDi >> config1.useDt >> config1.iStep0 >> config1.nStep >> config1.nRamp >> config1.Samples >> config1.ifilm
+				>> config2.dt0 >> config2.dt1 >> config2.CFL0 >> config2.CFL1
+				>> config1.gasModel >> config1.reacModel >> config1.visModel >> config1.transModel
+				>> config2.molWeight >> config2.gam0 >> config2.Pr0 >> config2.Sc0 >> config2.Re0
+				>> config2.muRef >> config2.suthC1 >> config2.suthC2
+				>> config2.MaRef >> config2.temRef >> config2.preRef
+				>> config2.p1 >> config2.T1 >> config2.u1 >> config2.v1
+				>> config2.p2 >> config2.T2 >> config2.u2 >> config2.v2;
+	config_file.close();
 
-	if(fscanf(fp, "%lf %lf", &config2.t0, &config2.x0) != 2)
-			{printf("format error in config.dat\n");exit(0);}
-	if(fscanf(fp, "%d %d %d %d %d %d %d %d", &config1.newrun, &config1.nonDi, &config1.useDt,
-			  &config1.iStep0, &config1.nStep, &config1.nRamp, &config1.Samples, &config1.ifilm) != 8)
-			{printf("format error in config.dat\n");exit(0);}
-	if(fscanf(fp, "%lf %lf %lf %lf",  &config2.dt0, &config2.dt1, &config2.CFL0, &config2.CFL1) != 4)
-			{printf("format error in config.dat\n");exit(0);}
-	if(fscanf(fp, "%d %d %d %d", &config1.gasModel, &config1.reacModel, &config1.visModel,&config1.transModel )!= 4)
-			{printf("format error in config.dat\n");exit(0);}
-	if(fscanf(fp, "%lf %lf %lf %lf %lf", &config2.molWeight,
-			&config2.gam0, &config2.Pr0, &config2.Sc0, &config2.Re0) != 5)
-			{printf("format error in config.dat\n");exit(0);}
-	if(fscanf(fp, "%lf %lf %lf", &config2.muRef,  &config2.suthC1,  &config2.suthC2) != 3)
-			{printf("format error in config.dat\n");exit(0);}
-	if(fscanf(fp, "%lf %lf %lf", &config2.MaRef, &config2.temRef,  &config2.preRef) != 3)
-			{printf("format error in config.dat\n");exit(0);}
-	if(fscanf(fp, "%lf %lf %lf %lf", &config2.p1, &config2.T1, &config2.u1, &config2.v1) != 4)
-			{printf("format error in config.dat\n");exit(0);}
-	if(fscanf(fp, "%lf %lf %lf %lf", &config2.p2, &config2.T2, &config2.u2, &config2.v2) != 4)
-			{printf("format error in config.dat\n");exit(0);}
-	fclose(fp);
+	std::ifstream gridset_file("gridset.dat");
+	if(gridset_file.fail())
+	{
+		std::cout << "gridset.dat file not found" << std::endl;
+		exit(0);
+	}
 
-	fp = fopen("gridset.dat", "r");
-	if(fp == NULL){printf("gridset.dat file not found \n");exit(0);}
-	if(fscanf(fp, "%d %d %d %d", &config1.ni, &config1.nj,  &config1.Ng, &config1.nblock) != 4)
-			 {printf("format error in gridset.dat\n");exit(0);}
-	if(fscanf(fp, "%lf %lf", &config2.Lx, &config2.Ly) != 2)
-			 {printf("format error in gridset.dat\n");exit(0);}
-	fclose(fp);
+	gridset_file >> config1.ni >> config1.nj >> config1.Ng >> config1.nblock
+				 >> config2.Lx >> config2.Ly;
+	gridset_file.close();
 
-	fprintf(outId, "\n/---------------------------configure data---------------------------/\n");
-	fprintf(outId, "\nt0=%lf, x0=%lf, Lx=%lf, Ly=%lf\n", config2.t0, config2.x0, config2.Lx, config2.Ly);
-	fprintf(outId, "\ngrids point: ni=%d, nj=%d, ghost cells Ng=%d, nblock=%d\n", config1.ni, config1.nj, config1.Ng, config1.nblock);
-	fprintf(outId, "\nnewrun=%d, nonDi=%d, useDt=%d, \niStep0=%d, nStep=%d, nRamp=%d, Samples=%d, ifilm=%d \n",
-			        config1.newrun, config1.nonDi, config1.useDt, config1.iStep0, config1.nStep,
-			        config1.nRamp, config1.Samples, config1.ifilm);
-	fprintf(outId, "dt0=%lf, dt1=%lf, CFL0=%lf, CFL1=%lf, \n", config2.dt0, config2.dt1, config2.CFL0, config2.CFL1);
-	fprintf(outId, "\ngasModel=%d, reacModel=%d, visModel=%d, transModel=%d \n", config1.gasModel,
-			       config1.reacModel, config1.visModel,config1.transModel);
-	fprintf(outId, "molWeight=%lf, gam0=%lf, pr0=%lf, Sc0=%lf, Re0=%lf\n", config2.molWeight,
-			        config2.gam0, config2.Pr0, config2.Sc0, config2.Re0);
-	fprintf(outId, "mu0=%lf, suthC1=%lf, suthC2=%lfn",config2.muRef, config2.suthC1, config2.suthC2);
-	fprintf(outId, "Ma0=%lf, temRef=%lf,  preRef=%lf\n", config2.MaRef, config2.temRef, config2.preRef);
+	log_file << "\n/---------------------------configure data---------------------------/\n"
+			 
+			 << "\nt0=" << config2.t0 << ", x0=" << config2.x0 << ", Lx=" << config2.Lx << ", Ly=" << config2.Ly << "\n"
+			 
+			 << "\ngrids point: ni=" << config1.ni << ", nj=" << config1.nj << ", ghost cells Ng=" << config1.Ng << ", nblock=" << config1.nblock << "\n"
+			 
+			 << "\nnewrun=" << config1.newrun << ", nonDi=" << config1.nonDi << ", useDt=" << config1.useDt << " \n"
+			 << "iStep0=" << config1.iStep0 << ", nStep=" << config1.nStep << ", nRamp=" << config1.nRamp << ", Samples=" << config1.Samples << ", ifilm=" << config1.ifilm << " \n"
+			 << "dt0=" << config2.dt0 << ", dt1=" << config2.dt1 << ", CFL0=" << config2.CFL0 << ", CFL1=" << config2.CFL1 << " \n"
+			 
+			 << "\ngasModel=" << config1.gasModel << ", reacModel=" << config1.reacModel << ", visModel=" << config1.visModel << ", transModel=" << config1.transModel << " \n"
+			 << "molWeight=" << config2.molWeight << ", gam0=" << config2.gam0 << ", pr0=" << config2.Pr0 << ", Sc0=" << config2.Sc0 << ", Re0=" << config2.Re0 << "\n"
+			 << "mu0=" << config2.muRef << ", suthC1=" << config2.suthC1 << ", suthC2=" << config2.suthC2 << "\n"
+			 << "Ma0=" << config2.MaRef << ", temRef=" << config2.temRef << ", preRef=" << config2.preRef << "\n"
 
-	fprintf(outId, "\nInitial condition: \n");
-	fprintf(outId, "p_1=%lf, T_1=%lf, u_1=%lf, v1=%lf \n",config2.p1, config2.T1, config2.u1, config2.v1);
-	fprintf(outId, "p_2=%lf, T_2=%lf, u_2=%lf, v2=%lf \n",config2.p2, config2.T2, config2.u2, config2.v2);
+			 << "\nInitial condition: \n"
+			 << "p_1=" << config2.p1 << ", T_1=" << config2.T1 << ", u_1=" << config2.u1 << ", v1=" << config2.v1 << " \n"
+			 << "p_2=" << config2.p2 << ", T_2=" << config2.T2 << ", u_2=" << config2.u2 << ", v2=" << config2.v2 << " \n";
 
 	config1.thermo_base = 0;
 	config1.timeOrder = 3;
 
-	fclose(outId);
-}
-/*---------------------------------------------------
- * read initial condition
- * ------------------------------------------------*/
-void readic()
-{
+	log_file.close();
+
+	/*---1. Grid information---*/
+	I0 = config1.ni + 2*config1.Ng;
+	J0 = config1.nj + 2*config1.Ng;
+	
+	/* After coordinate transformation,
+	 * the distance between cells are equal */
+	dxc = mesh.xi[1*J0] - mesh.xi[0*J0];
+	dyc = mesh.et[1]    - mesh.et[0];
+
 	int ns, ib, nb;
 
 	nb = 2; // No. of initial condition
@@ -128,115 +121,6 @@ void readic()
 	}
 }
 
-/*---------------------------------------------------
- * read mesh data
- * ------------------------------------------------*/
-void readmesh()
-{
-	int i, j, ic,nc, mni;
-	char linebuf[200], filename[20];
-	FILE  *fp, *outId;
-
-	/*---1. Grid information---*/
-	I0 = config1.ni + 2*config1.Ng;
-	J0 = config1.nj + 2*config1.Ng;
-	nc = I0*J0;
-
-	/*---2. Allocate memory---*/
-	mesh.xi   = (double*)malloc(sizeof(double)*nc);
-	mesh.et   = (double*)malloc(sizeof(double)*nc);
-	mesh.x_xi = (double*)malloc(sizeof(double)*nc);
-	mesh.x_et = (double*)malloc(sizeof(double)*nc);
-	mesh.y_xi = (double*)malloc(sizeof(double)*nc);
-	mesh.y_et = (double*)malloc(sizeof(double)*nc);
-	mesh.yaks = (double*)malloc(sizeof(double)*nc);
-
-	sprintf(filename, "set%d.dat", MyID);
-	fp = fopen(filename,"r");
-	if(fp == NULL)
-	{
-		printf("grid file set%d.dat not found! \n", MyID);
-#ifdef MPI_RUN
-		MPI_Abort( MPI_COMM_WORLD, 11);
-#else
-		exit(0);
-#endif
-	}
-
-	fgets(linebuf, sizeof(linebuf), fp);
-	fgets(linebuf, sizeof(linebuf), fp);
-	fgets(linebuf, sizeof(linebuf), fp); // skip the title
-
-	/*---3. Read the grids---*/
-	for(j=0; j<J0; j++)
-		for(i=0; i<I0; i++)
-		{
-			ic = i*J0 + j;
-			if(fscanf(fp," %lf %lf %lf %lf %lf %lf %lf",
-				  &mesh.xi[ic], &mesh.et[ic], &mesh.x_xi[ic], &mesh.x_et[ic],
-				  &mesh.y_xi[ic], &mesh.y_et[ic], &mesh.yaks[ic]) != 7)
-			{
-				printf("format error in grid file set%d.dat! \n", MyID);
-#ifdef MPI_RUN
-				MPI_Abort( MPI_COMM_WORLD, 12);
-#else
-			    exit(0);
-#endif
-			}
-	 }
-	fclose(fp);
-	
-	/* After coordinate transformation,
-	 * the distance between cells are equal */
-	dxc = mesh.xi[1*J0] - mesh.xi[0*J0];
-	dyc = mesh.et[1]    - mesh.et[0];
-
-	/*---4. Read the physical mesh---*/
-
-	if(MyID == 0)
-	{
-		outId = fopen("outInfo.dat", "a");
-
-	    mni = nproc*config1.ni;
-		nc = config1.nj*mni;
-		mesh.x = (double*)malloc(sizeof(double)*nc);
-		mesh.y = (double*)malloc(sizeof(double)*nc);
-
-		fp = fopen("mesh.dat","r");
-		if(fp == NULL)
-		{
-			printf("mesh file mesh.dat not found! \n");
-#ifdef MPI_RUN
-				MPI_Abort( MPI_COMM_WORLD, 13);
-#else
-			    exit(0);
-#endif
-		}
-		fgets(linebuf, sizeof (linebuf), fp);
-		fgets(linebuf, sizeof (linebuf), fp);
-		fgets(linebuf, sizeof (linebuf), fp); // skip the title
-		
-		for(j=0; j<config1.nj; j++)
-			for(i=0; i<mni; i++)
-			{
-		    	ic = i*config1.nj + j;
-		    	if(fscanf(fp," %lf  %lf",&mesh.x[ic], &mesh.y[ic])!= 2)
-		    	{
-					printf("format error in mesh file! \n");
-		#ifdef MPI_RUN
-					MPI_Abort( MPI_COMM_WORLD, 14);
-		#else
-					exit(0);
-		#endif
-		    	};
-			};
-
-	    fclose(fp);
-		fprintf(outId,"\nRead grid data complete!\n");
-		fprintf(outId,"\n/---------------------runtime information---------------------/\n");
-		fclose(outId);
-	}
-}
 /*---------------------------------------------------
  * read chemical and thermal data
  * ------------------------------------------------*/
@@ -319,11 +203,7 @@ void cheminit()
 		else
 		{
 			printf("input mixture error! \n");
-#ifdef MPI_RUN
-	MPI_Abort( MPI_COMM_WORLD, 15);
-#else
-	endjob();
-#endif
+			exit(0);
 		}
 		fprintf(outId,"\n");
 		if(fgets(linebuf, sizeof(linebuf),fp) == NULL){printf("format error in chemical data \n");exit(0);}
@@ -371,11 +251,7 @@ void therminit()
 		if(sscanf(&linebuf[50], "%2d %lf %lf", &istate, &rmw, &hform) != 3 )
 		{
 			printf("[scarf_glenn] format error in istate, rmw, hfrom\n");
-#ifdef MPI_RUN
-	MPI_Abort( MPI_COMM_WORLD, 16);
-#else
-	endjob();
-#endif
+			exit(0);
 		}
 
 		isspec = 0;
@@ -451,11 +327,7 @@ void therminit()
 	if(icount < config1.nspec)
 	{
 		printf("\n species missing in the file thermal file !!!\n");
-#ifdef MPI_RUN
-	MPI_Abort( MPI_COMM_WORLD, 17);
-#else
-	endjob();
-#endif
+		exit(0);
 	}
 	fclose(fp);
 	fclose(outId);
@@ -496,11 +368,7 @@ void muBlottner()
 	if(fp == NULL)
 	{
 		printf("scarf_blottner.dat not found! \n");
-#ifdef MPI_RUN
-	MPI_Abort( MPI_COMM_WORLD, 18);
-#else
-	endjob();
-#endif
+		exit(0);
 	}
 
 	fprintf(outId,"\n/--------viscosity coefficients of Blottner Model--------/\n");
@@ -542,11 +410,7 @@ void muBlottner()
 	if(icount < config1.nspec)
 	{
 		printf("\n species missing in the file trans.dat !!!\n");
-#ifdef MPI_RUN
-		MPI_Abort( MPI_COMM_WORLD, 19);
-#else
-		endjob();
-#endif
+		exit(0);
 	}
 	fclose(fp);
 	fclose(outId);
@@ -585,11 +449,7 @@ void muCollision()
 		if(sscanf(linebuf, "%s %le %le", tempname, &tempsigma, &tempepok) != 3 )
 		{
 			printf("[scarf_collision.dat] format error! \n");
-#ifdef MPI_RUN
-	MPI_Abort( MPI_COMM_WORLD, 110);
-#else
-	endjob();
-#endif
+			exit(0);
 		}
 
 		for (ns=0; ns<config1.nspec; ns++)
@@ -615,11 +475,7 @@ void muCollision()
 	if(icount < config1.nspec)
 	{
 		printf("\n species missing in the scarf_collision.dat !!!\n");
-#ifdef MPI_RUN
-		MPI_Abort( MPI_COMM_WORLD, 122);
-#else
-		endjob();
-#endif
+		exit(0);
 	}
 
 	fclose(fp);
@@ -649,11 +505,7 @@ void reaction(FILE *fp)
 	if((fgets(linebuf,sizeof(linebuf),fp)) == NULL)
 	{
 		printf("reaction name missing in chemical file \n");
-#ifdef MPI_RUN
-		MPI_Abort( MPI_COMM_WORLD, 112);
-#else
-		endjob();
-#endif
+		exit(0);
 	}
 
     for(nr=0; nr<config1.nreac; nr++)
@@ -756,11 +608,7 @@ Label:  if(fgets(linebuf,sizeof(linebuf),fp) == NULL){printf("format error in ch
 		if( sscanf(linebuf,"%lf %lf %lf %lf", &reacData[nr].af, &reacData[nr].nf, &reacData[nr].thetaf, &ttvf) != 4)
 		{
 			printf("[reaction] format error in af, nr, thetaf \n");
-#ifdef MPI_RUN
-		MPI_Abort( MPI_COMM_WORLD, 113);
-#else
-		endjob();
-#endif
+			exit(0);
 		}
 		fprintf(outId,"forward coefficients: \n");
 		fprintf(outId,"af=%lf nf=%lf thetaf=%lf ttvf=%lf \n",reacData[nr].af, reacData[nr].nf, reacData[nr].thetaf, ttvf);
@@ -774,11 +622,7 @@ Label:  if(fgets(linebuf,sizeof(linebuf),fp) == NULL){printf("format error in ch
 			if(linebuf[0] != 't' && linebuf[0] != 'T')
 			{
 				printf("third body coefficients not found! \n");
-#ifdef MPI_RUN
-		MPI_Abort( MPI_COMM_WORLD, 114);
-#else
-		endjob();
-#endif
+				exit(0);
 			}
 			for(ns=0; ns<config1.nspec; ns++)
 			{
@@ -801,11 +645,7 @@ Label:  if(fgets(linebuf,sizeof(linebuf),fp) == NULL){printf("format error in ch
 				if( sscanf(linebuf,"%lf %lf %lf \n", &reacData[nr].ab, &reacData[nr].nb, &reacData[nr].thetab) != 3)
 				{
 					printf("[reaction] format error in ab,nb, thetab \n");
-#ifdef MPI_RUN
-		MPI_Abort( MPI_COMM_WORLD, 115);
-#else
-		endjob();
-#endif
+					exit(0);
 				}
 				fprintf(outId,"ab=%lf nb=%lf thetab=%lf \n",reacData[nr].ab, reacData[nr].nb, reacData[nr].thetab);
 			}
@@ -819,11 +659,7 @@ Label:  if(fgets(linebuf,sizeof(linebuf),fp) == NULL){printf("format error in ch
 						&reacData[nr].Br[2], &reacData[nr].Br[3], &reacData[nr].Br[4]) != 5)
 				{
 					printf("[reaction] format error in Br[1] ~ Br[5]\n");
-#ifdef MPI_RUN
-		MPI_Abort( MPI_COMM_WORLD, 116);
-#else
-		endjob();
-#endif
+					exit(0);
 				}
 				fprintf(outId,"Br[1] ~ Br[5]=%lf, %lf, %lf, %lf, %lf\n",reacData[nr].Br[0], reacData[nr].Br[1],
 						reacData[nr].Br[2], reacData[nr].Br[3], reacData[nr].Br[4]);
@@ -950,51 +786,3 @@ void DBconvert(char *str, int ilen, char *temp, double coef)
 
       temp = trim(temp);
 }
-
-#ifdef MPI_RUN
-/*---------------------------------------------------
- * tell other tasks the thermal-chemical data
- * ------------------------------------------------*/
-void BcastData()
-{
-	int count1, count2, block[2];
-
-	MPI_Aint offset[2], extent;
-	MPI_Datatype reacDatatype, specDatatype, oldtype[2];
-
-	/*-----------Broadcast configuration data-----------*/
-	count1 = sizeof(config1)/sizeof(int);
-	count2 = sizeof(config2)/sizeof(double);
-	MPI_Bcast(&config1, count1, MPI_INT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(&config2, count2, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-
-
-	/*-----------Broadcast thermo-chemical data-----------*/
-
-	offset[0] = 0;
-	oldtype[0] = MPI_INT;
-	block[0] = 2;
-	MPI_Type_extent(MPI_INT, &extent);
-	offset[1] = 2 * extent;
-	oldtype[1] = MPI_DOUBLE;
-	block[1] = (sizeof(specData[0])-block[0])/sizeof(double);
-	MPI_Type_struct(2, block, offset, oldtype, &specDatatype);
-
-	offset[0] = 0;
-	oldtype[0] = MPI_INT;
-	block[0] = 2;
-	MPI_Type_extent(MPI_INT, &extent);
-	offset[1] = 2 * extent;
-	oldtype[1] = MPI_DOUBLE;
-	block[1] = (sizeof(reacData[0])-block[0])/sizeof(double);
-	MPI_Type_struct(2, block, offset, oldtype, &reacDatatype);
-
-	MPI_Type_commit(&reacDatatype);
-	MPI_Type_commit(&specDatatype);
-
-	MPI_Bcast(reacData, maxreac, reacDatatype, 0, MPI_COMM_WORLD);
-	MPI_Bcast(specData, maxspec, specDatatype, 0, MPI_COMM_WORLD);
-
-}
-
-#endif

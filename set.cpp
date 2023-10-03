@@ -4,10 +4,12 @@
  *  Created on: 2014.01.19
  *
  */
+
 #include<math.h>
-#include<mpi.h>
+
 #include"comm.h"
 #include"chemdata.h"
+
 /*---------------------------------------------------
  * set and initialize the job
  * ------------------------------------------------*/
@@ -45,8 +47,6 @@ void setjob()
 		importjob();
 
 	setGeom();
-	
-
 }
 
 /*---------------------------------------------------
@@ -65,7 +65,7 @@ void initjob()
 	if(MyID == 0)
 	{
 		/* Note: only MyID==0 carries the mesh data */
-		mni = nproc*config1.ni;
+		mni = nthread*config1.ni;
 		dis = config2.x0*config2.Lx;
 		for(i=0; i<mni; i++)
 		{
@@ -76,9 +76,7 @@ void initjob()
 		}
 	    config1.x_sh = i; 
 	}
-#ifdef MPI_RUN
-	MPI_Bcast(&config1.x_sh, 1, MPI_INT, 0, MPI_COMM_WORLD);
-#endif
+
 	// get the position of the diaphragm
     i0 = config1.x_sh/config1.ni; // the integer part
     ir = config1.x_sh%config1.ni; // the remainder part
@@ -95,7 +93,9 @@ void initjob()
 	else
 		assigncells(0,config1.ni, 0,config1.nj, inc[1].u,inc[1].v,inc[1].t,inc[1].p, inc[1].ys);
 
-	MPI_Barrier(MPI_COMM_WORLD);
+	/*
+	MPI_Barrier(MPI_COMM_WORLD); // Lock Here!
+	*/
 #else
 
 	assigncells(i0,ir, 0,config1.nj, inc[0].u,inc[0].v,inc[0].t,inc[0].p, inc[0].ys);
@@ -109,18 +109,17 @@ void initjob()
 void assigncells(int i1, int in, int j1, int jn, double u,
 		         double v, double t, double p, double *qs)
 {
-	int i, j, ic, ns;
 	double ein, es, ek, rgas1, RT;
-	double getenergy(double qs[], double t);
 	double getes(int ns, double t);
 	double getrgas(double qs[]);
 
 	rgas1 = (ru/config2.molWeight)/rgasRef;
 
-	for(i=i1; i<in; i++)
-		for(j=j1; j<jn; j++)
+	for(int i=i1; i<in; i++)
+	{
+		for(int j=j1; j<jn; j++)
 		{
-			ic = i*config1.nj + j;
+			int ic = i*config1.nj + j;
 
 			U.q[ic][1] = u;
 			U.q[ic][2] = v;
@@ -138,7 +137,7 @@ void assigncells(int i1, int in, int j1, int jn, double u,
 			else
 			{
 				ein = 0.;
-				for(ns = 0; ns<config1.nspec; ns++)
+				for(int ns = 0; ns<config1.nspec; ns++)
 				{
 					U.qs[ic][ns] = qs[ns];
 					es = getes(ns, t);
@@ -149,6 +148,7 @@ void assigncells(int i1, int in, int j1, int jn, double u,
 				U.q[ic][0] = p/(rgas1*t);
 			}
 		}
+	}
 }
 /*-----------------------------------------------------------
  * Import the former solution.
@@ -165,7 +165,7 @@ void importjob()
 	FILE *fp;
 	void endjob();
 
-	mni = nproc*config1.ni;
+	mni = nthread*config1.ni;
 	nc  = mni*config1.nj;
 
 	if(MyID == 0)
@@ -191,11 +191,7 @@ void importjob()
 		if(fp == NULL)
 		{
 			printf("%s not found! \n", filename);
-#ifdef MPI_RUN
-			MPI_Abort( MPI_COMM_WORLD, 21);
-#else
-			endjob();
-#endif
+			exit(0);
 		}
 		printf("reading the field file... \n");
 		fgets(linebuf,sizeof(linebuf),fp);
@@ -219,7 +215,7 @@ void importjob()
 		  fclose(fp);
 
 		/*----2. write the new tcv.dat file for each processors----*/
-		for(id=0; id<nproc; id++)
+		for(id=0; id<nthread; id++)
 		{
 			sprintf(filename, "tcv%d.dat", id);
 			fp = fopen(filename,"w");
@@ -249,9 +245,11 @@ void importjob()
 		}
 	}
 
-#ifdef MPI_RUN
-	MPI_Barrier(MPI_COMM_WORLD);
-#endif
+	/*
+	#ifdef MPI_RUN
+	MPI_Barrier(MPI_COMM_WORLD); // Lock Here!
+	#endif
+	*/
 
 	/*----3. Each processor read the solution file----*/
     sprintf(filename, "tcv%d.dat", MyID);
@@ -272,11 +270,7 @@ void importjob()
 			if(fscanf(fp," %lf %lf %lf %lf %lf %lf %lf %lf",&dum, &dum, &rho, &u, &v, &p, &T, &e) != 8)
 			{
 				printf("format error in tcv.dat \n");
-#ifdef MPI_RUN
-				MPI_Abort( MPI_COMM_WORLD, 22);
-#else
-				endjob();
-#endif
+				exit(0);
 			}
 			if(config1.gasModel != 0)
 			{
@@ -457,7 +451,6 @@ void setGeom()
 
 				Uv.fe1[ic] = (sxsx + sysy) * yas;
 				Uv.fe2[ic] = (sxex + syey) * yas;
-
 			}
 		}
 
@@ -504,7 +497,6 @@ void setGeom()
 	            Uv.ge2[ic]  = (exex + eyey) * yas;
 	    	}
 	    }
-
 	}
 }
 /*---------------------------------------------------

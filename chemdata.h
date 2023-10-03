@@ -12,7 +12,6 @@
 #define maxreac 11
 #define maxmix 2
 
-
 inline char spname[6][15];
 inline struct strct_specData
 {

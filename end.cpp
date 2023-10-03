@@ -5,9 +5,6 @@
  *
  */
 
-#include<stdio.h>
-#include<stdlib.h>
-#include<mpi.h>
 #include"comm.h"
 
 /*---------------------------------------------------
@@ -36,11 +33,6 @@ void endjob()
 		free(mesh.y);
 		printf("program exits! \n");
 	}
-
-#ifdef MPI_RUN
-	MPI_Finalize();
-#endif
-	exit(0);
 }
 
 /*---------------------------------------------------
@@ -166,5 +158,4 @@ void freeOthers()
 		free(dsdq);
 	}
 	free(qso);
-
 }
