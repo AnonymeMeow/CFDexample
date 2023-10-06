@@ -16,6 +16,7 @@ void endjob()
 
 	void freeU(int nlen, struct strct_U *U);
 	void freeUv();
+	void freeU1d(int);
 	void freeOthers();
 
 	nc = config1.ni*config1.nj;
@@ -25,14 +26,12 @@ void endjob()
 	freeU(nc1, &Ug);
 
 	freeUv();
+	freeU1d(MAX(I0,J0));
 	freeOthers();
 
-	if(MyID==0)
-	{
-		free(mesh.x);
-		free(mesh.y);
-		printf("program exits! \n");
-	}
+	free(mesh.x);
+	free(mesh.y);
+	printf("program exits! \n");
 }
 
 /*---------------------------------------------------
@@ -40,8 +39,6 @@ void endjob()
  * ------------------------------------------------*/
 void freeU(int nlen, struct strct_U *U)
 {
-	int i;
-
 	free(U->mu);
 	free(U->kt);
 	free(U->cv);
@@ -50,7 +47,7 @@ void freeU(int nlen, struct strct_U *U)
 	free(U->tem);
 	free(U->gam);
 
-	for(i=0; i<nlen; i++)
+	for(int i=0; i<nlen; i++)
 		free(U->q[i]);
 
 	free(U->q);
@@ -60,10 +57,6 @@ void freeU(int nlen, struct strct_U *U)
  * ------------------------------------------------*/
 void freeUv()
 {
-	int i, nlen;
-
-	nlen = I0*J0;
-
 	free(Uv.fu1);
 	free(Uv.fu2);
 	free(Uv.fu3);
@@ -89,18 +82,40 @@ void freeUv()
 	free(Uv.v_et);
 	free(Uv.T_xi);
 	free(Uv.T_et);
-
-	free(Uv.qs_xi);
-	free(Uv.qs_et);
 }
+
+void freeU1d(int nlen)
+{
+	free(U1d.xix);
+	free(U1d.xiy);
+	free(U1d.etx);
+	free(U1d.ety);
+	free(U1d.yas);
+	free(U1d.rho);
+	free(U1d.du);
+	free(U1d.dv);
+	free(U1d.dt);
+	free(U1d.u);
+	free(U1d.v);
+	free(U1d.p);
+	free(U1d.e);
+	free(U1d.t);
+	free(U1d.gam);
+	free(U1d.mu);
+	free(U1d.kt);
+	for (int i=0; i<nlen; i++)
+	{
+		free(U1d.flux[i]);
+	}
+	free(U1d.flux);
+}
+
 /*---------------------------------------------------
  * free memory of other variables
  * ------------------------------------------------*/
 void freeOthers()
 {
-	int ic, ns, nc;
-
-	nc = config1.ni*config1.nj;
+	int nc = config1.ni*config1.nj;
 
 	free(mesh.xi);
 	free(mesh.et);
@@ -110,7 +125,7 @@ void freeOthers()
 	free(mesh.y_et);
 	free(mesh.yaks);
 
-	for(ic=0; ic<nc; ic++)
+	for(int ic=0; ic<nc; ic++)
 	{
 		free(qo[ic]);
 		free(rhs[ic]);

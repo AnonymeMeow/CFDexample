@@ -14,7 +14,7 @@ void vfluxF(double **rhs)
 {
 	int i, j, il, ir, jr, ii, jj, k, ik, ic, ivar, nvar,
 		idr, idu, idv, idt, idm, idk, idux, iduy, idvx, idvy, idtx, idty;
-	double  Ec0, coef_Re, coef_e, *fv;
+	double  Ec0, coef_Re, coef_e, fv[12];
 	double interpo[6]={1./60., -2./15., 37./60., 37./60., -2./15., 1./60.};
 	double approxi[6]={-1./90., 25./180., -245./180., 245./180., -25./180., 1./90.};
 
@@ -22,7 +22,6 @@ void vfluxF(double **rhs)
 	void freevFlux(int nlen, struct strct_flux *f);
 	void interpoDY();
 
-	allocatevFlux(I0,&U1d);
 	interpoDY();
 
     idr  = 0;
@@ -39,8 +38,6 @@ void vfluxF(double **rhs)
     idty = 11;
 
     nvar = 12;
-
-	fv = (double*)malloc(sizeof(double)*nvar);
 	/*--------------------------------------------------*/
 
    	il = config1.Ng - 1;
@@ -124,9 +121,6 @@ void vfluxF(double **rhs)
 				rhs[ic][k] = rhs[ic][k] + (U1d.flux[i][k] - U1d.flux[i-1][k])/dxc;
 		}
 	}
-
-    free(fv);
-	freevFlux(I0, &U1d);
 }
 
 
@@ -137,7 +131,7 @@ void vfluxG(double **rhs)
 {
 	int i, j, jl, ir, jr, ii, jj, k, jk, ic, ivar, nvar,
 		idr, idu, idv, idt, idm, idk, idux, iduy, idvx, idvy, idtx, idty;
-	double  Ec0, coef_Re, coef_e, *fv;
+	double  Ec0, coef_Re, coef_e, fv[12];
 	double interpo[6]={1./60., -2./15., 37./60., 37./60., -2./15., 1./60.};
 	double approxi[6]={-1./90., 25./180., -245./180., 245./180., -25./180., 1./90.};
 
@@ -145,7 +139,6 @@ void vfluxG(double **rhs)
 	void freevFlux(int nlen, struct strct_flux *f);
 	void interpoDX();
 
-	allocatevFlux(J0,&U1d);
 	interpoDX();
 
     idr  = 0;
@@ -162,8 +155,6 @@ void vfluxG(double **rhs)
     idty = 11;
 
     nvar = 12;
-
-	fv  = (double*)malloc(sizeof(double)*nvar);
 	/*--------------------------------------------------*/
 
    	jl = config1.Ng - 1;
@@ -222,13 +213,28 @@ void vfluxG(double **rhs)
     		}
 
         /*---------- 3.calculate the viscous Flux ----------*/
-    			 U1d.flux[j][0] = 0.;
-    			 U1d.flux[j][1] = coef_Re*fv[idm]*(Uv.gu1[ic]*fv[idux] + Uv.gu2[ic]*fv[iduy]
-    		                           + Uv.gu3[ic]*fv[idvx]  + Uv.guv[ic]*fv[idvy]);
-    			 U1d.flux[j][2] = coef_Re*fv[idm]*(Uv.gv1[ic]*fv[idux] + Uv.guv[ic]*fv[iduy]
-    		                           + Uv.gv2[ic]*fv[idvx]  + Uv.gv3[ic]*fv[idvy]);
-    			 U1d.flux[j][3] = fv[idu]*U1d.flux[j][1] + fv[idv]*U1d.flux[j][2]
-    			                + coef_e*fv[idk]*(Uv.ge1[ic]*fv[idtx] + Uv.ge2[ic]*fv[idty]);
+			U1d.flux[j][0] = 0.;
+			U1d.flux[j][1] =
+				coef_Re*fv[idm]*(
+					Uv.gu1[ic]*fv[idux] +
+					Uv.gu2[ic]*fv[iduy] +
+					Uv.gu3[ic]*fv[idvx] +
+					Uv.guv[ic]*fv[idvy]
+				);
+			U1d.flux[j][2] =
+				coef_Re*fv[idm]*(
+					Uv.gv1[ic]*fv[idux] +
+					Uv.guv[ic]*fv[iduy] +
+					Uv.gv2[ic]*fv[idvx] +
+					Uv.gv3[ic]*fv[idvy]
+				);
+			U1d.flux[j][3] =
+				fv[idu]*U1d.flux[j][1] +
+				fv[idv]*U1d.flux[j][2] +
+				coef_e*fv[idk]*(
+					Uv.ge1[ic]*fv[idtx] +
+					Uv.ge2[ic]*fv[idty]
+				);
     	}
 		/* For the same grids(without transformation), the metrics coefficients are:
 		 * Uv.gu1 = 0, Uv.gu2 = 1, Uv.gu3 = 1, Uv.guv = 0.;
@@ -246,9 +252,6 @@ void vfluxG(double **rhs)
 				rhs[ic][k] = rhs[ic][k] + (U1d.flux[j][k] - U1d.flux[j-1][k])/dyc;
 		}
 	}
-
-    free(fv);
-	freevFlux(J0, &U1d);
 }
 
 /*---------------------------------------------------
@@ -297,122 +300,6 @@ void interpoDY()
 		Uv.v_et[ic] = (vjr - vjl)/dyc;
 		Uv.T_et[ic] = (tjr - tjl)/dyc;
     }
-    	/* 3. assign boundary condition in direction i */
-#ifdef MPI_RUN
-
-	for(j=config1.Ng; j<jr; j++)
-	{
-    	/*---- assign MPI boundary ----*/
-    	/* left side, wall */
-    	if(MyID == 0)
-    	{
-            ii = 2*config1.Ng - 1;
-        	for(i=0; i<config1.Ng; i++)
-		    {
-    			ic = i*J0 + j;
-    	    	ic1 = ii*J0 + j;
-		    	Uv.u_et[ic] = -Uv.u_et[ic1];
-		    	Uv.v_et[ic] = -Uv.v_et[ic1];
-		    	Uv.T_et[ic] =  Uv.T_et[ic1];
-			    ii -= 1;
-		    }
-    	}
-    	else
-    	{
-    		/* MPI boundary */
-    		jj = j - config1.Ng;
-    		for(i=0; i<config1.Ng; i++)
-		    {
-    			ic  = i*J0 + j;
-    			if(jj == config1.nj-1)
-    			{
-    				icm = i*config1.nj + jj-1;
-    				icp = i*config1.nj + jj;
-    			}
-    			else
-    			{
-    				icm = i*config1.nj + jj;
-    				icp = i*config1.nj + jj+1;
-    			}
-		    	Uv.u_et[ic] =  (mpiRecv_ql[icp].u - mpiRecv_ql[icm].u)/dyc;
-		    	Uv.v_et[ic] =  (mpiRecv_ql[icp].v - mpiRecv_ql[icm].v)/dyc;
-		    	Uv.T_et[ic] =  (mpiRecv_ql[icp].t - mpiRecv_ql[icm].t)/dyc;
-		    }
-    	}
-    	/* right side, solid Wall */
-    	if(MyID == NMAXproc)
-    	{
-        	ii = ir -1;
-        	for(i=ir; i<I0; i++)
-        	{
-    			ic  = i*J0  + j;
-     		    ic1 = ii*J0 + j;
-		    	Uv.u_et[ic] = -Uv.u_et[ic1];
-		    	Uv.v_et[ic] = -Uv.v_et[ic1];
-		    	Uv.T_et[ic] =  Uv.T_et[ic1];
-			    ii -= 1;
-		    }
-    	}
-    	else
-    	{
-    		/* MPI boundary */
-    		jj = j - config1.Ng;
-    		for(i=0; i<config1.Ng; i++)
-    		{
-    			ii = ir + i;
-
-    			ic = ii*J0 + j;
-
-    			if(jj == config1.nj-1)
-    			{
-    				icm = i*config1.nj + jj-1;
-    				icp = i*config1.nj + jj;
-    			}
-    			else
-    			{
-    				icm = i*config1.nj + jj;
-    				icp = i*config1.nj + jj+1;
-    			}
-    			Uv.u_et[ic] =  (mpiRecv_qr[icp].u - mpiRecv_qr[icm].u)/dyc;
-    			Uv.v_et[ic] =  (mpiRecv_qr[icp].v - mpiRecv_qr[icm].v)/dyc;
-    			Uv.T_et[ic] =  (mpiRecv_qr[icp].t - mpiRecv_qr[icm].t)/dyc;
-    			ii -= 1;
-		    }
-		}
-#else
-		{
-			// left side, wall
-			ii = 2*config1.Ng - 1;
-			for(i=0; i<config1.Ng; i++)
-			{
-				ic = i*J0 + j;
-				ic1 = ii*J0 + j;
-				Uv.u_et[ic] = -Uv.u_et[ic1];
-				Uv.v_et[ic] = -Uv.v_et[ic1];
-				Uv.T_et[ic] =  Uv.T_et[ic1];
-				if(config1.gasModel != 0)
-					for(ns=0; ns<config1.nspec; ns++)
-						Uv.qs_et[ic][ns] = Uv.qs_et[ic1][ns];
-				ii -= 1;
-			}
-
-			// right side, solid wall
-			ii = ir -1;
-			for(i=ir; i<I0; i++)
-			{
-				ic = i*J0 + j;
-				ic1 = ii*J0 + j;
-				Uv.u_et[ic] = -Uv.u_et[ic1];
-				Uv.v_et[ic] = -Uv.v_et[ic1];
-				Uv.T_et[ic] =  Uv.T_et[ic1];
-				if(config1.gasModel != 0)
-					for(ns=0; ns<config1.nspec; ns++)
-						Uv.qs_et[ic][ns] = Uv.qs_et[ic1][ns];
-				ii -= 1;
-			}
-		}
-#endif
-    }
 }
 
 /*---------------------------------------------------
@@ -420,7 +307,7 @@ void interpoDY()
  * ------------------------------------------------*/
 void interpoDX()
 {
-    int i, ir, ii, j, jr, ns, ic, icm, icp, k;
+    int i, ir, ii, j, jr, ic, icm, icp;
 	double uir, uil, vir, vil, tir, til;
 	double interpo[6]={1./60., -2./15., 37./60., 37./60., -2./15., 1./60.};
 
@@ -442,7 +329,7 @@ void interpoDX()
     		til = 0.;
 
 			// 3. other region
-			for(k=0; k<6; k++)
+			for(int k=0; k<6; k++)
 			{
 				ii = i - 3 + k;
 				icp = (ii+1)*J0 + j;
@@ -461,52 +348,4 @@ void interpoDX()
 		Uv.v_xi[ic] = (vir - vil)/dxc;
 		Uv.T_xi[ic] = (tir - til)/dxc;
 	}
-}
-
-/*---------------------------------------------------
- * allocate memory for calculation inviscid flux
- * ------------------------------------------------*/
-void allocatevFlux(int nlen, struct strct_flux *f)
-{
-	int i;
-
-	f->du = (double*)malloc(sizeof(double)*nlen);
-	f->dv = (double*)malloc(sizeof(double)*nlen);
-	f->dt = (double*)malloc(sizeof(double)*nlen);
-	f->rho= (double*)malloc(sizeof(double)*nlen);
-	f->u  = (double*)malloc(sizeof(double)*nlen);
-	f->v  = (double*)malloc(sizeof(double)*nlen);
-	f->p  = (double*)malloc(sizeof(double)*nlen);
-	f->t  = (double*)malloc(sizeof(double)*nlen);
-	f->mu = (double*)malloc(sizeof(double)*nlen);
-	f->kt = (double*)malloc(sizeof(double)*nlen);
-	f->flux = (double**)malloc(sizeof(double*)*nlen);
-	for(i=0; i<nlen; i++)
-	{
-		f->flux[i]  = (double*)malloc(sizeof(double)*neqv);
-	}
-}
-/*---------------------------------------------------
- * free the memory
- * ------------------------------------------------*/
-void freevFlux(int nlen, struct strct_flux *f)
-{
-	int i;
-
-	free(f->du);
-	free(f->dv);
-	free(f->dt);
-	free(f->rho);
-	free(f->u);
-	free(f->v);
-	free(f->p);
-	free(f->t);
-	free(f->mu);
-	free(f->kt);
-
-	for(i=0; i<nlen; i++)
-	{
-		free(f->flux[i]);
-	}
-	free(f->flux);
 }

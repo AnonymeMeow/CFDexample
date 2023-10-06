@@ -5,7 +5,6 @@
  *  last modified: Sep 10, 2014
  */
 
-#include<string.h>
 #include<math.h>
 #include"comm.h"
 
@@ -23,12 +22,8 @@ void flux(double **rhs)
 	adGhost();
 	fluxF(rhs);
 	fluxG(rhs);
-	if(config1.visModel != 0)
-	{
-		vfluxF(rhs);
-		vfluxG(rhs);
-	}
-
+	vfluxF(rhs);
+	vfluxG(rhs);
 }
 
 /*---------------------------------------------------
@@ -47,8 +42,6 @@ void fluxF(double **rhs)
 
 	void boundX();
 	double phin(double fa, double fb, double fc, double fd);
-	void allocateFlux(int nlen, struct strct_flux *f);
-	void freeFlux(int nlen, struct strct_flux *f);
 	void getEigenvector(double qave[], double p, double t, double ga, double kx, 
 		                double ky, double (*le)[maxeqn], double (*re)[maxeqn]);
 
@@ -57,8 +50,6 @@ void fluxF(double **rhs)
 	jr = config1.nj + config1.Ng;
 
     boundX();
-
-    allocateFlux(I0, &U1d);
 
 	for(j=config1.Ng; j<jr; j++)
 	{
@@ -189,9 +180,7 @@ void fluxF(double **rhs)
 				rhs[ic][iv] = - (U1d.flux[i][iv] - U1d.flux[i-1][iv])/dxc;
 		}
 	}
-	freeFlux(I0, &U1d);
 }
-
 
 /*---------------------------------------------------
  * Calculate the inviscid flux in y direction
@@ -209,8 +198,6 @@ void fluxG(double **rhs)
 
 	double phin(double fa, double fb, double fc, double fd);
 	void boundY();
-	void allocateFlux(int nlen, struct strct_flux *f);
-	void freeFlux(int nlen, struct strct_flux *f);
 	void getEigenvector(double qave[], double p, double t, double ga, double kx, 
 		                double ky, double (*le)[maxeqn], double (*re)[maxeqn]);
 
@@ -220,8 +207,6 @@ void fluxG(double **rhs)
 	jl = config1.Ng - 1;
 
 	boundY();
-
-	allocateFlux(J0,&U1d);
 
 	for(i=config1.Ng; i<ir; i++)
 	{
@@ -347,7 +332,6 @@ void fluxG(double **rhs)
 		}
 
 	}
-	freeFlux(J0, &U1d);
 }
 
 /*---------------------------------------------------
@@ -355,16 +339,14 @@ void fluxG(double **rhs)
  * ------------------------------------------------*/
 void adGhost()
 {
-	int i, j, ii, jj, ic, ic1, ns;
-
-	for(i = 0; i<config1.ni; i++)
+	for(int i = 0; i<config1.ni; i++)
 	{
-		ii = i + config1.Ng;
-		for(j = 0; j<config1.nj; j++)
+		int ii = i + config1.Ng;
+		for(int j = 0; j<config1.nj; j++)
 		{
-			jj = j + config1.Ng;
-			ic = i*config1.nj + j;
-			ic1 = ii*J0 + jj;
+			int jj = j + config1.Ng;
+			int ic = i*config1.nj + j;
+			int ic1 = ii*J0 + jj;
 
     		Ug.q[ic1][0] =  U.q[ic][0];
     		Ug.q[ic1][1] =  U.q[ic][1];
@@ -384,50 +366,53 @@ void adGhost()
  * ------------------------------------------------*/
 double phin(double fa, double fb, double fc, double fd)
 {
-	double is0, is1, is2, epss, al0, al1, al2, om0, om2, fz;
+	double epss = 1.e-13;
 
-	epss = 1.e-13;
+	double is0 = 13.*(fa - fb)*(fa - fb) + 3.*(fa - 3.*fb)*(fa - 3.*fb);
+	double is1 = 13.*(fb - fc)*(fb - fc) + 3.*(fb + fc)*(fb + fc);
+	double is2 = 13.*(fc - fd)*(fc - fd) + 3.*(3.*fc - fd)*(3.*fc - fd);
 
-	is0 = 13.*(fa - fb)*(fa - fb) + 3.*(fa - 3.*fb)*(fa - 3.*fb);
-	is1 = 13.*(fb - fc)*(fb - fc) + 3.*(fb + fc)*(fb + fc);
-	is2 = 13.*(fc - fd)*(fc - fd) + 3.*(3.*fc - fd)*(3.*fc - fd);
+	double al0 = 1./pow((is0 + epss),2.0);
+	double al1 = 6./pow((is1 + epss),2.0);
+	double al2 = 3./pow((is2 + epss),2.0);
 
-	al0 = 1./pow((is0 + epss),2.0);
-	al1 = 6./pow((is1 + epss),2.0);
-	al2 = 3./pow((is2 + epss),2.0);
+	double om0 = al0/(al0 + al1 + al2);
+	double om2 = al2/(al0 + al1 + al2);
 
-	om0 = al0/(al0 + al1 + al2);  om2 = al2/(al0 + al1 + al2);
-
-	fz = 1./3.*om0*(fa - 2.*fb + fc) + 1./6.*(om2 - 0.5)*(fb - 2.*fc + fd);
-	return (fz);
+	return 1./3.*om0*(fa - 2.*fb + fc) + 1./6.*(om2 - 0.5)*(fb - 2.*fc + fd);
 }
 
 /*---------------------------------------------------
  * Calculate the Eigen-vectors of perfect gas
  * ------------------------------------------------*/
-void getEigenvector(double q[], double p, double t, double ga, double kx, double ky,
-					 double (*leftEigenvector)[maxeqn], double (*rightEigenvector)[maxeqn])
+void getEigenvector(
+	double q[],
+	double p,
+	double t,
+	double ga,
+	double kx,
+	double ky,
+	double (*leftEigenvector)[maxeqn],
+	double (*rightEigenvector)[maxeqn]
+)
 {
-	double rho, u, v, kx1, ky1, c, alf, beta, term1, r2c,
-		   te, H, u2, tiny;
+	double tiny = 1.e-12;
 
-	tiny = 1.e-12;
+	double rho  = q[0];
+	double u    = q[1];
+	double v    = q[2];
+    double beta = ga - 1.;
+	double u2   = 0.5*(u*u + v*v);
+    double c    = sqrt(ga*p/(rho + tiny));
+    double H    = (q[3] + p/(rho + tiny));
 
-	rho = q[0];
-	u   = q[1];
-	v   = q[2];
-    beta = ga - 1.;
-	u2   = 0.5*(u*u + v*v);
-    c    = sqrt(ga*p/(rho + tiny));
-    H    = (q[3] + p/(rho + tiny));
+	double term1 = beta/(c*c + tiny);
+	double r2c  = 1./(c*1.414214 + tiny);
 
-	term1 = beta/(c*c + tiny);
-	r2c = 1./(c*1.414214 + tiny);
-
-	alf = sqrt(kx*kx + ky*ky);
-	kx1 = kx/alf;
-	ky1 = ky/alf;
-	te  = u*kx1 + v*ky1;
+	double alf = sqrt(kx*kx + ky*ky);
+	double kx1 = kx/alf;
+	double ky1 = ky/alf;
+	double te  = u*kx1 + v*ky1;
 
 	/*Modified from  Volume 2, C.Hirsch, Page 183 */
 
@@ -464,57 +449,4 @@ void getEigenvector(double q[], double p, double t, double ga, double kx, double
 	rightEigenvector[3][1] =  u*ky1 - v*kx1;
 	rightEigenvector[3][2] =  r2c*(H + c*te);
 	rightEigenvector[3][3] =  r2c*(H - c*te);
-}
-
-/*---------------------------------------------------
- * allocate memory for calculation inviscid flux
- * ------------------------------------------------*/
-void allocateFlux(int nlen, struct strct_flux *f)
-{
-	int i;
-
-	f->xix  = (double*)malloc(sizeof(double)*nlen);
-	f->xiy  = (double*)malloc(sizeof(double)*nlen);
-	f->etx  = (double*)malloc(sizeof(double)*nlen);
-	f->ety  = (double*)malloc(sizeof(double)*nlen);
-	f->yas  = (double*)malloc(sizeof(double)*nlen);
-	f->rho  = (double*)malloc(sizeof(double)*nlen);
-	f->u    = (double*)malloc(sizeof(double)*nlen);
-	f->v    = (double*)malloc(sizeof(double)*nlen);
-	f->e    = (double*)malloc(sizeof(double)*nlen);
-	f->p    = (double*)malloc(sizeof(double)*nlen);
-	f->t    = (double*)malloc(sizeof(double)*nlen);
-	f->gam  = (double*)malloc(sizeof(double)*nlen);
-	f->flux = (double**)malloc(sizeof(double*)*nlen);
-	for(i=0; i<nlen; i++)
-	{
-		f->flux[i]   = (double*)malloc(sizeof(double)*neqv);
-	}
-}
-/*---------------------------------------------------
- * free the memory
- * ------------------------------------------------*/
-void freeFlux(int nlen, struct strct_flux *f)
-{
-	int i;
-
-	free(f->xix);
-	free(f->xiy);
-	free(f->etx);
-	free(f->ety);
-	free(f->yas);
-	free(f->rho);
-	free(f->u);
-	free(f->v);
-	free(f->e);
-	free(f->p);
-	free(f->t);
-
-	free(f->gam);
-
-	for(i=0; i<nlen; i++)
-	{
-		free(f->flux[i]);
-	}
-	free(f->flux);
 }

@@ -13,17 +13,13 @@
 
 /*- constant & func. -*/
 #define maxeqn 9
-#define mpicell 3000 // Number of exchange cells for MPI
 #define ru 8.3141
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
 #define MAX(a,b) (((a) > (b)) ? (a) : (b))
 
-#define MPI_RUN
-
 inline int I0; // Number of cells in x direction for each thread, including ghost cells
 inline int J0; // Number of cells in y direction, including ghost cells
 inline int neqv; // Solution variables without chemical terms
-inline int nthread; // Number of threads
 inline int MyID; // ID of the current thread (not needed)
 inline double dxc; // Non-dimensional length of each cell in xi direction
 inline double dyc; // Non-dimensional length of each cell in et direction
@@ -42,7 +38,7 @@ inline struct strct_configInt
 	int nStep; // Total time step of simulation
 	int nRamp; // Time steps for the program march from CFL0 to CFL1 (or dt0 to dt1)
 	int Samples; // Intervals for the program to output results
-	int ifilm; // (?)
+	int ifilm; // Steps between each output file (?)
 	int gasModel; // Whether real-gas flow (or perfect gas flow)
 	int visModel; // Whether viscous flow
 	int reacModel; // Whether have chemical reaction
@@ -50,7 +46,9 @@ inline struct strct_configInt
 
 inline struct strct_configDouble
 {
-	double molWeight, gam0, Pr0;
+	double molWeight; // Average mole weight of the gas
+	double gam0; // Heat capacity ratio (C_V/C_p)
+	double Pr0; // Prandtl number (C_p*mu/lambda)
 	double t0; // The initial time of simulation
 	double x0; // The initial position of the shock
 	double Lx; // Length of the rectangle in x direction
@@ -66,37 +64,28 @@ inline struct strct_configDouble
 	double p1, T1, u1, v1, p2, T2, u2, v2; // Initial condition
 }config2;
 
-/*- MPI related -*/
-#ifdef MPI_RUN
-inline int NMAXproc;
-inline struct strct_gcelltype
-{
-	double rho, u, v, e, p, t, mu, kt, ga, qs[6], di[6];
-}mpiRecv_ql[mpicell], mpiRecv_qr[mpicell];
-#endif
-
 /* Origin flow variables */
 inline struct strct_U
 {
 	double ** q; // (rho, u, v, e)
 	double * pre; // Pressure
 	double * tem; // Temperature
-	double * mu;
-	double * kt;
-	double * cv;
-	double * rgas;
-	double * gam;
+	double * mu; // 
+	double * kt; // 
+	double * cv; // 
+	double * rgas; // 
+	double * gam; // 
 }U, Ug;
 
 /*- viscous related variables -*/
 inline struct strct_Uv
 {
 	// origin variables derivatives
-	double* u_xi, * u_et, * v_xi, * v_et, * T_xi, * T_et, ** qs_xi, ** qs_et;
+	double* u_xi, * u_et, * v_xi, * v_et, * T_xi, * T_et;
 
 	// geometry derivatives coefficients
-	double* fu1, * fu2, * fu3, * fv1, * fv2, * fv3, * fuv, * fe1, * fe2;
-	double* gu1, * gu2, * gu3, * gv1, * gv2, * gv3, * guv, * ge1, * ge2;
+	double* fu1, * fu2, * fu3, * fv1, * fv2, * fv3, * fuv, * fe1, * fe2,
+		* gu1, * gu2, * gu3, * gv1, * gv2, * gv3, * guv, * ge1, * ge2;
 }Uv;
 
 /*- flux related variables -*/
@@ -106,15 +95,6 @@ inline struct strct_flux
 		* du, * dv, * dt,
 		* u, * v, * p, * e, * t, * gam, * mu, * kt, ** flux;
 }U1d;
-
-/* Initial conditions */
-inline struct strct_ic
-{
-	double u; // Velocity in x direction
-	double v; // Velocity in y direction
-	double t; // Temperature
-	double p; // Pressure
-}inc[2];
 
 /* Geometry variables (coordinations and derivatives) */
 inline struct strct_metric
@@ -128,7 +108,6 @@ inline struct strct_metric
 /*- others -*/
 inline double** qo, ** rhs;
 
-void grid();
 void readjob();
 void setjob();
 void jobbody();
