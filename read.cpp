@@ -15,7 +15,7 @@ void readjob()
 	double xm; // The non-dimensionalized value of L_a
 	double ym; // The non-dimensionalized value of L_b
 	gridset_file
-		>> config1.ni >> config1.nj >> config1.Ng >> config1.nblock
+		>> config1.ni >> config1.nj >> config1.Ng
 		>> config2.Lx >> config2.Ly
 		>> xm >> ym;
 
@@ -30,16 +30,13 @@ void readjob()
 	}
 
 	config_file
-		>> config2.t0 >> config2.x0
-		>> config1.newrun >> config1.nonDi >> config1.useDt
-		>> config1.iStep0 >> config1.nStep >> config1.nRamp >> config1.Samples >> config1.ifilm
+		>> config2.t0
+		>> config1.iStep0 >> config1.nStep >> config1.nRamp >> config1.Samples
 		>> config2.dt0 >> config2.dt1 >> config2.CFL0 >> config2.CFL1
-		>> config1.gasModel >> config1.reacModel >> config1.visModel
 		>> config2.molWeight >> config2.gam0 >> config2.Pr0
 		>> config2.muRef >> config2.suthC1 >> config2.suthC2
 		>> config2.MaRef >> config2.temRef >> config2.preRef
-		>> config2.p1 >> config2.T1 >> config2.u1 >> config2.v1
-		>> config2.p2 >> config2.T2 >> config2.u2 >> config2.v2;
+		>> config2.p1 >> config2.T1 >> config2.u1 >> config2.v1;
 
 	config_file.close();
 
@@ -48,22 +45,19 @@ void readjob()
 	log_file
 		<< "\n/---------------------------configure data---------------------------/\n"
 
-		<< "\nt0=" << config2.t0 << ", x0=" << config2.x0 << ", Lx=" << config2.Lx << ", Ly=" << config2.Ly << "\n"
+		<< "\nt0=" << config2.t0 << ", Lx=" << config2.Lx << ", Ly=" << config2.Ly << "\n"
 
-		<< "\ngrids point: ni=" << config1.ni << ", nj=" << config1.nj << ", ghost cells Ng=" << config1.Ng << ", nblock=" << config1.nblock << "\n"
+		<< "\ngrids point: ni=" << config1.ni << ", nj=" << config1.nj << ", ghost cells Ng=" << config1.Ng << "\n"
 
-		<< "\nnewrun=" << config1.newrun << ", nonDi=" << config1.nonDi << ", useDt=" << config1.useDt << " \n"
-		<< "iStep0=" << config1.iStep0 << ", nStep=" << config1.nStep << ", nRamp=" << config1.nRamp << ", Samples=" << config1.Samples << ", ifilm=" << config1.ifilm << " \n"
+		<< "iStep0=" << config1.iStep0 << ", nStep=" << config1.nStep << ", nRamp=" << config1.nRamp << ", Samples=" << config1.Samples << " \n"
 		<< "dt0=" << config2.dt0 << ", dt1=" << config2.dt1 << ", CFL0=" << config2.CFL0 << ", CFL1=" << config2.CFL1 << " \n"
 
-		<< "\ngasModel=" << config1.gasModel << ", reacModel=" << config1.reacModel << ", visModel=" << config1.visModel << " \n"
 		<< "molWeight=" << config2.molWeight << ", gam0=" << config2.gam0 << ", pr0=" << config2.Pr0 << "\n"
 		<< "mu0=" << config2.muRef << ", suthC1=" << config2.suthC1 << ", suthC2=" << config2.suthC2 << "\n"
 		<< "Ma0=" << config2.MaRef << ", temRef=" << config2.temRef << ", preRef=" << config2.preRef << "\n"
 
 		<< "\nInitial condition: \n"
-		<< "p_1=" << config2.p1 << ", T_1=" << config2.T1 << ", u_1=" << config2.u1 << ", v1=" << config2.v1 << " \n"
-		<< "p_2=" << config2.p2 << ", T_2=" << config2.T2 << ", u_2=" << config2.u2 << ", v2=" << config2.v2 << " \n";
+		<< "p_1=" << config2.p1 << ", T_1=" << config2.T1 << ", u_1=" << config2.u1 << ", v1=" << config2.v1 << " \n";
 
 	log_file.close();
 		

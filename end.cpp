@@ -12,18 +12,12 @@
  * ------------------------------------------------*/
 void endjob()
 {
-	int nc, nc1;
-
 	void freeU(int nlen, struct strct_U *U);
 	void freeUv();
 	void freeU1d(int);
 	void freeOthers();
 
-	nc = config1.ni*config1.nj;
-	nc1 = I0*J0;
-
-	freeU(nc,  &U);
-	freeU(nc1, &Ug);
+	freeU(I0*J0, &U);
 
 	freeUv();
 	freeU1d(MAX(I0,J0));
@@ -52,6 +46,7 @@ void freeU(int nlen, struct strct_U *U)
 
 	free(U->q);
 }
+
 /*---------------------------------------------------
  * free memory of dU variables
  * ------------------------------------------------*/

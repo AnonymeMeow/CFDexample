@@ -17,9 +17,6 @@ void vfluxF(double **rhs)
 	double  Ec0, coef_Re, coef_e, fv[12];
 	double interpo[6]={1./60., -2./15., 37./60., 37./60., -2./15., 1./60.};
 	double approxi[6]={-1./90., 25./180., -245./180., 245./180., -25./180., 1./90.};
-
-	void allocatevFlux(int nlen, struct strct_flux *f);
-	void freevFlux(int nlen, struct strct_flux *f);
 	void interpoDY();
 
 	interpoDY();
@@ -58,13 +55,13 @@ void vfluxF(double **rhs)
         	U1d.du[i] = Uv.u_xi[ic];
             U1d.dv[i] = Uv.v_xi[ic];
         	U1d.dt[i] = Uv.T_xi[ic];
-        	U1d.rho[i]=  Ug.q[ic][0];
-        	U1d.u[i]  =  Ug.q[ic][1];
-        	U1d.v[i]  =  Ug.q[ic][2];
-        	U1d.p[i]  =  Ug.pre[ic];
-        	U1d.t[i]  =  Ug.tem[ic];
-        	U1d.mu[i] =  Ug.mu[ic];
-        	U1d.kt[i] =  Ug.kt[ic];
+        	U1d.rho[i]=  U.q[ic][0];
+        	U1d.u[i]  =  U.q[ic][1];
+        	U1d.v[i]  =  U.q[ic][2];
+        	U1d.p[i]  =  U.pre[ic];
+        	U1d.t[i]  =  U.tem[ic];
+        	U1d.mu[i] =  U.mu[ic];
+        	U1d.kt[i] =  U.kt[ic];
         }
 
     	for(i=il; i<ir; i++)
@@ -98,12 +95,27 @@ void vfluxF(double **rhs)
 
         /*---------- 3.calculate the viscous Flux ----------*/
     		U1d.flux[i][0] = 0.;
-    		U1d.flux[i][1] = coef_Re*fv[idm]*(Uv.fu1[ic]*fv[idux] + Uv.fu2[ic]*fv[iduy]
-    		               + Uv.fuv[ic]*fv[idvx]  + Uv.fu3[ic]*fv[idvy]);
-    		U1d.flux[i][2] = coef_Re*fv[idm]*(Uv.fuv[ic]*fv[idux] + Uv.fv1[ic]*fv[iduy]
-    		               + Uv.fv2[ic]*fv[idvx]  + Uv.fv3[ic]*fv[idvy]);
-    		U1d.flux[i][3] = fv[idu]*U1d.flux[i][1] + fv[idv]*U1d.flux[i][2]
-    		               + coef_e*fv[idk]*(Uv.fe1[ic]*fv[idtx] + Uv.fe2[ic]*fv[idty]);
+    		U1d.flux[i][1] =
+				coef_Re*fv[idm]*(
+					Uv.fu1[ic]*fv[idux] +
+					Uv.fu2[ic]*fv[iduy] +
+					Uv.fuv[ic]*fv[idvx] +
+					Uv.fu3[ic]*fv[idvy]
+				);
+    		U1d.flux[i][2] =
+				coef_Re*fv[idm]*(
+					Uv.fuv[ic]*fv[idux] +
+					Uv.fv1[ic]*fv[iduy] +
+					Uv.fv2[ic]*fv[idvx] +
+					Uv.fv3[ic]*fv[idvy]
+				);
+    		U1d.flux[i][3] =
+				fv[idu]*U1d.flux[i][1] +
+				fv[idv]*U1d.flux[i][2] +
+				coef_e*fv[idk]*(
+					Uv.fe1[ic]*fv[idtx] +
+					Uv.fe2[ic]*fv[idty]
+				);
     	}
 		/* For the same grids(without transformation), the metrics coefficients are:
 		 * Uv.fu1 = 4./3, Uv.fu2 = 0, Uv.fu3 = -2./3, Uv.fuv = 0.;
@@ -134,9 +146,6 @@ void vfluxG(double **rhs)
 	double  Ec0, coef_Re, coef_e, fv[12];
 	double interpo[6]={1./60., -2./15., 37./60., 37./60., -2./15., 1./60.};
 	double approxi[6]={-1./90., 25./180., -245./180., 245./180., -25./180., 1./90.};
-
-	void allocatevFlux(int nlen, struct strct_flux *f);
-	void freevFlux(int nlen, struct strct_flux *f);
 	void interpoDX();
 
 	interpoDX();
@@ -175,13 +184,13 @@ void vfluxG(double **rhs)
         	U1d.du[j] = Uv.u_xi[ic];
             U1d.dv[j] = Uv.v_xi[ic];
         	U1d.dt[j] = Uv.T_xi[ic];
-        	U1d.rho[j]=  Ug.q[ic][0];
-        	U1d.u[j]  =  Ug.q[ic][1];
-        	U1d.v[j]  =  Ug.q[ic][2];
-        	U1d.p[j]  =  Ug.pre[ic];
-        	U1d.t[j]  =  Ug.tem[ic];
-        	U1d.mu[j] =  Ug.mu[ic];
-        	U1d.kt[j] =  Ug.kt[ic];
+        	U1d.rho[j]=  U.q[ic][0];
+        	U1d.u[j]  =  U.q[ic][1];
+        	U1d.v[j]  =  U.q[ic][2];
+        	U1d.p[j]  =  U.pre[ic];
+        	U1d.t[j]  =  U.tem[ic];
+        	U1d.mu[j] =  U.mu[ic];
+        	U1d.kt[j] =  U.kt[ic];
         }
 
     	for(j=jl; j<jr; j++)
@@ -286,19 +295,18 @@ void interpoDY()
 				icp = i*J0 + jj+1;
 				icm = i*J0 + jj;
 
-				ujr = ujr + interpo[k]*Ug.q[icp][1];
-				vjr = vjr + interpo[k]*Ug.q[icp][2];
-				tjr = tjr + interpo[k]*Ug.tem[icp];
-				ujl = ujl + interpo[k]*Ug.q[icm][1];
-				vjl = vjl + interpo[k]*Ug.q[icm][2];
-				tjl = tjl + interpo[k]*Ug.tem[icm];
+				ujr = ujr + interpo[k]*U.q[icp][1];
+				vjr = vjr + interpo[k]*U.q[icp][2];
+				tjr = tjr + interpo[k]*U.tem[icp];
+				ujl = ujl + interpo[k]*U.q[icm][1];
+				vjl = vjl + interpo[k]*U.q[icm][2];
+				tjl = tjl + interpo[k]*U.tem[icm];
 			}
-    	}
-
-		/* 2. get the derivative on (i,j) cells */
-		Uv.u_et[ic] = (ujr - ujl)/dyc;
-		Uv.v_et[ic] = (vjr - vjl)/dyc;
-		Uv.T_et[ic] = (tjr - tjl)/dyc;
+			/* 2. get the derivative on (i,j) cells */
+			Uv.u_et[ic] = (ujr - ujl)/dyc;
+			Uv.v_et[ic] = (vjr - vjl)/dyc;
+			Uv.T_et[ic] = (tjr - tjl)/dyc;
+		}
     }
 }
 
@@ -335,17 +343,17 @@ void interpoDX()
 				icp = (ii+1)*J0 + j;
 				icm = ii*J0 + j;
 
-				uir = uir + interpo[k]*Ug.q[icp][1];
-				vir = vir + interpo[k]*Ug.q[icp][2];
-				tir = tir + interpo[k]*Ug.tem[icp];
-				uil = uil + interpo[k]*Ug.q[icm][1];
-				vil = vil + interpo[k]*Ug.q[icm][2];
-				til = til + interpo[k]*Ug.tem[icm];
+				uir = uir + interpo[k]*U.q[icp][1];
+				vir = vir + interpo[k]*U.q[icp][2];
+				tir = tir + interpo[k]*U.tem[icp];
+				uil = uil + interpo[k]*U.q[icm][1];
+				vil = vil + interpo[k]*U.q[icm][2];
+				til = til + interpo[k]*U.tem[icm];
 			}
-    	}
-		/* 2. get the derivative on (i,j) cells */
-		Uv.u_xi[ic] = (uir - uil)/dxc;
-		Uv.v_xi[ic] = (vir - vil)/dxc;
-		Uv.T_xi[ic] = (tir - til)/dxc;
+			/* 2. get the derivative on (i,j) cells */
+			Uv.u_xi[ic] = (uir - uil)/dxc;
+			Uv.v_xi[ic] = (vir - vil)/dxc;
+			Uv.T_xi[ic] = (tir - til)/dxc;
+		}
 	}
 }

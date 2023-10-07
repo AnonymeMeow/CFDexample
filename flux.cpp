@@ -13,13 +13,11 @@
  * -------------------------------------------------------------*/
 void flux(double **rhs)
 {
-	void adGhost();
 	void fluxF(double **rhs);
 	void fluxG(double **rhs);
 	void vfluxF(double **rhs);
 	void vfluxG(double **rhs);
 
-	adGhost();
 	fluxF(rhs);
 	fluxG(rhs);
 	vfluxF(rhs);
@@ -61,13 +59,13 @@ void fluxF(double **rhs)
 			U1d.yas[i] =  mesh.yaks[ic];
 			U1d.xix[i] =  mesh.y_et[ic]/U1d.yas[i];
 			U1d.xiy[i] = -mesh.x_et[ic]/U1d.yas[i];
-			U1d.rho[i] =  Ug.q[ic][0];
-			U1d.u[i]   =  Ug.q[ic][1];
-			U1d.v[i]   =  Ug.q[ic][2];
-			U1d.e[i]   =  Ug.q[ic][3];
-			U1d.p[i]   =  Ug.pre[ic];
-			U1d.t[i]   =  Ug.tem[ic];
-			U1d.gam[i] =  Ug.gam[ic];
+			U1d.rho[i] =  U.q[ic][0];
+			U1d.u[i]   =  U.q[ic][1];
+			U1d.v[i]   =  U.q[ic][2];
+			U1d.e[i]   =  U.q[ic][3];
+			U1d.p[i]   =  U.pre[ic];
+			U1d.t[i]   =  U.tem[ic];
+			U1d.gam[i] =  U.gam[ic];
 		}
 
 		for(i=il; i<ir; i++) // loop for all the i faces
@@ -218,13 +216,13 @@ void fluxG(double **rhs)
 			U1d.yas[j] =  mesh.yaks[ic];
 			U1d.etx[j] = -mesh.y_xi[ic]/U1d.yas[j];
 			U1d.ety[j] =  mesh.x_xi[ic]/U1d.yas[j];
-			U1d.rho[j] =  Ug.q[ic][0];
-			U1d.u[j]   =  Ug.q[ic][1];
-			U1d.v[j]   =  Ug.q[ic][2];
-			U1d.e[j]   =  Ug.q[ic][3];
-			U1d.p[j]   =  Ug.pre[ic];
-			U1d.t[j]   =  Ug.tem[ic];
-			U1d.gam[j] =  Ug.gam[ic];
+			U1d.rho[j] =  U.q[ic][0];
+			U1d.u[j]   =  U.q[ic][1];
+			U1d.v[j]   =  U.q[ic][2];
+			U1d.e[j]   =  U.q[ic][3];
+			U1d.p[j]   =  U.pre[ic];
+			U1d.t[j]   =  U.tem[ic];
+			U1d.gam[j] =  U.gam[ic];
 		}
 
 		for(j=jl; j<jr; j++) // loop for j faces get the value at lines of fluid without ghost cell
@@ -330,37 +328,9 @@ void fluxG(double **rhs)
 
 			// the rhs at j=config1.Ng is actually not used
 		}
-
 	}
 }
 
-/*---------------------------------------------------
- * Copy solution vector U to Ug with ghost cells
- * ------------------------------------------------*/
-void adGhost()
-{
-	for(int i = 0; i<config1.ni; i++)
-	{
-		int ii = i + config1.Ng;
-		for(int j = 0; j<config1.nj; j++)
-		{
-			int jj = j + config1.Ng;
-			int ic = i*config1.nj + j;
-			int ic1 = ii*J0 + jj;
-
-    		Ug.q[ic1][0] =  U.q[ic][0];
-    		Ug.q[ic1][1] =  U.q[ic][1];
-    		Ug.q[ic1][2] =  U.q[ic][2];
-    		Ug.q[ic1][3] =  U.q[ic][3];
-    		Ug.tem[ic1] =  U.tem[ic];
-    		Ug.pre[ic1] =  U.pre[ic];
-        	Ug.gam[ic1] =  U.gam[ic];
-        	Ug.rgas[ic1]=  U.rgas[ic];
-    		Ug.mu[ic1]  =  U.mu[ic];
-    		Ug.kt[ic1]  =  U.kt[ic];
-		}
-	}
-}
 /*---------------------------------------------------
  * Calculate the Phi function of WENO scheme
  * ------------------------------------------------*/

@@ -12,7 +12,7 @@
  * ------------------------------------------------*/
 void setjob()
 {
-	void initjob();
+	void assigncells(int, int, int, int, double, double, double, double);
 	void setGeom();
 
 	void allocateU(int nlen, struct strct_U *U);
@@ -20,48 +20,16 @@ void setjob()
 	void allocateU1d(int);
 	void allocateOthers();
 
-	int nc  = config1.ni*config1.nj;
-	int nc1 = I0*J0;
-
-	allocateU(nc, &U);
-	allocateU(nc1, &Ug);
+	allocateU(I0*J0, &U);
 	allocateUv();
 	allocateU1d(MAX(I0,J0));
 	allocateOthers();
 
-	initjob();
+	assigncells(0, I0, 0, J0, config2.u1, config2.v1, config2.T1, config2.p1);
 
 	setGeom();
 }
 
-/*---------------------------------------------------
- * Conduct the initialization for the simulation
- * ------------------------------------------------*/
-void initjob()
-{
-	int ic, icp, x_sh;
-	void assigncells(int i1, int in, int j1, int jn, double u,
-			         double v, double t, double p);
-
-	config2.t0 = 0;
-	config1.iStep0 = 1;
-
-	double dis = config2.x0*config2.Lx;
-	for(x_sh=0; x_sh<config1.ni; x_sh++)
-	{
-		ic = x_sh*J0 + 0;
-		icp = (x_sh+1)*J0 + 0;
-		if((mesh.x[ic]<=dis) && (dis<mesh.x[icp]))
-			break;
-	}
-
-	assigncells(0,x_sh, 0,config1.nj, config2.u1,config2.v1,config2.T1,config2.p1);
-	assigncells(x_sh,config1.ni, 0,config1.nj, config2.u2,config2.v2,config2.T2,config2.p2);
-
-	/*
-	MPI_Barrier(MPI_COMM_WORLD); // Lock Here!
-	*/
-}
 /*-----------------------------------------------------------
  * Assign initial value to each cells
  * ---------------------------------------------------------*/
@@ -74,7 +42,7 @@ void assigncells(int i1, int in, int j1, int jn, double u,
 	{
 		for(int j=j1; j<jn; j++)
 		{
-			int ic = i*config1.nj + j;
+			int ic = i*J0 + j;
 
 			U.q[ic][1] = u;
 			U.q[ic][2] = v;
@@ -190,6 +158,7 @@ void setGeom()
 		}
 	}
 }
+
 /*---------------------------------------------------
  * allocate memory for U vector
  * ------------------------------------------------*/
@@ -285,13 +254,13 @@ void allocateU1d(int nlen)
 void allocateOthers()
 {
 	int nc = config1.ni*config1.nj;
+	int nc1 = I0*J0;
 
 	/*------------Other variables-------------*/
 	rhs  = (double**)malloc(sizeof(double*)*nc);
-	qo   = (double**)malloc(sizeof(double*)*nc);
+	qo   = (double**)malloc(sizeof(double*)*nc1);
 	for(int ic=0; ic<nc; ic++)
-	{
-		qo[ic]   = (double*)malloc(sizeof(double)*neqv);
 		rhs[ic]  = (double*)malloc(sizeof(double)*neqv);
-	}
+	for(int ic=0; ic<nc1; ic++)
+		qo[ic]   = (double*)malloc(sizeof(double)*neqv);
 }

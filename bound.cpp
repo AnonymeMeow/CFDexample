@@ -23,16 +23,16 @@ void boundX()
 		{
 			int ic = i*J0 + j;
 			int ic1 = ii*J0 + j;
-			Ug.q[ic][0] =  Ug.q[ic1][0];
-			Ug.q[ic][1] =  -Ug.q[ic1][1];
-			Ug.q[ic][2] =  -Ug.q[ic1][2];
-			Ug.q[ic][3] =  Ug.q[ic1][3];
-			Ug.tem[ic]  =  Ug.tem[ic1];
-			Ug.pre[ic]  =  Ug.pre[ic1];
+			U.q[ic][0] =  U.q[ic1][0];
+			U.q[ic][1] =  -U.q[ic1][1];
+			U.q[ic][2] =  -U.q[ic1][2];
+			U.q[ic][3] =  U.q[ic1][3];
+			U.tem[ic]  =  U.tem[ic1];
+			U.pre[ic]  =  U.pre[ic1];
 
-			Ug.gam[ic]  =  Ug.gam[ic1];
-			Ug.mu[ic]   =  Ug.mu[ic1];
-			Ug.kt[ic]   =  Ug.kt[ic1];
+			U.gam[ic]  =  U.gam[ic1];
+			U.mu[ic]   =  U.mu[ic1];
+			U.kt[ic]   =  U.kt[ic1];
 		}
 		ii -= 1;
 	}
@@ -46,16 +46,16 @@ void boundX()
 			int ic = i*J0 + j;
 			int ic1 = ii*J0 + j;
 
-			Ug.q[ic][0] =  Ug.q[ic1][0];
-			Ug.q[ic][1] =  -Ug.q[ic1][1];
-			Ug.q[ic][2] =  -Ug.q[ic1][2];
-			Ug.q[ic][3] =  Ug.q[ic1][3];
-			Ug.tem[ic]  =  Ug.tem[ic1];
-			Ug.pre[ic]  =  Ug.pre[ic1];
+			U.q[ic][0] =  U.q[ic1][0];
+			U.q[ic][1] =  -U.q[ic1][1];
+			U.q[ic][2] =  -U.q[ic1][2];
+			U.q[ic][3] =  U.q[ic1][3];
+			U.tem[ic]  =  U.tem[ic1];
+			U.pre[ic]  =  U.pre[ic1];
 
-			Ug.gam[ic]  =  Ug.gam[ic1];
-			Ug.mu[ic]   =  Ug.mu[ic1];
-			Ug.kt[ic]   =  Ug.kt[ic1];
+			U.gam[ic]  =  U.gam[ic1];
+			U.mu[ic]   =  U.mu[ic1];
+			U.kt[ic]   =  U.kt[ic1];
 		}
 		ii -= 1;
 	}
@@ -78,16 +78,16 @@ void boundY()
 			int ic  = i*J0 + j;
 			int ic1 = i*J0 + jj;
 
-			Ug.q[ic][0] =  Ug.q[ic1][0];
-			Ug.q[ic][1] = -Ug.q[ic1][1];
-			Ug.q[ic][2] = -Ug.q[ic1][2];
-			Ug.q[ic][3] =  Ug.q[ic1][3];
-			Ug.tem[ic]  =  Ug.tem[ic1];
-			Ug.pre[ic]  =  Ug.pre[ic1];
+			U.q[ic][0] =  U.q[ic1][0];
+			U.q[ic][1] = -U.q[ic1][1];
+			U.q[ic][2] = -U.q[ic1][2];
+			U.q[ic][3] =  U.q[ic1][3];
+			U.tem[ic]  =  U.tem[ic1];
+			U.pre[ic]  =  U.pre[ic1];
 
-			Ug.gam[ic]  =  Ug.gam[ic1];
-			Ug.mu[ic]   =  Ug.mu[ic1];
-			Ug.kt[ic]   =  Ug.kt[ic1];
+			U.gam[ic]  =  U.gam[ic1];
+			U.mu[ic]   =  U.mu[ic1];
+			U.kt[ic]   =  U.kt[ic1];
 			jj -= 1;
 		}
 
@@ -98,16 +98,16 @@ void boundY()
 			int ic = i*J0 + j;
 			int ic1 = i*J0 + jj;
 
-		    Ug.q[ic][0] =  Ug.q[ic1][0];
-		    Ug.q[ic][1] =  1.0;
-		    Ug.q[ic][2] =  -Ug.q[ic1][2];
-		    Ug.q[ic][3] =  Ug.q[ic1][3];
-		    Ug.tem[ic]  =  Ug.tem[ic1];
-		    Ug.pre[ic]  =  Ug.pre[ic1];
+		    U.q[ic][0] =  U.q[ic1][0];
+		    U.q[ic][1] =  1.0;
+		    U.q[ic][2] =  -U.q[ic1][2];
+		    U.q[ic][3] =  U.q[ic1][3];
+		    U.tem[ic]  =  U.tem[ic1];
+		    U.pre[ic]  =  U.pre[ic1];
 
-		    Ug.gam[ic]  =  Ug.gam[ic1];
-		    Ug.mu[ic]   =  Ug.mu[ic1];
-		    Ug.kt[ic]   =  Ug.kt[ic1];
+		    U.gam[ic]  =  U.gam[ic1];
+		    U.mu[ic]   =  U.mu[ic1];
+		    U.kt[ic]   =  U.kt[ic1];
 	    	jj -= 1;
 		}
     }
