@@ -17,12 +17,10 @@ void setjob()
 
 	void allocateU(int nlen, struct strct_U *U);
 	void allocateUv();
-	void allocateU1d(int);
 	void allocateOthers();
 
 	allocateU(I0*J0, &U);
 	allocateUv();
-	allocateU1d(MAX(I0,J0));
 	allocateOthers();
 
 	assigncells(0, I0, 0, J0, config2.u1, config2.v1, config2.T1, config2.p1);

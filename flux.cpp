@@ -8,28 +8,12 @@
 #include<math.h>
 #include"comm.h"
 
-/*--------------------------------------------------------------
- * Calculate Fluxes of perfect-gas flow
- * -------------------------------------------------------------*/
-void flux(double **rhs)
-{
-	void fluxF(double **rhs);
-	void fluxG(double **rhs);
-	void vfluxF(double **rhs);
-	void vfluxG(double **rhs);
-
-	fluxF(rhs);
-	fluxG(rhs);
-	vfluxF(rhs);
-	vfluxG(rhs);
-}
-
 /*---------------------------------------------------
  * Calculate the inviscid flux in x direction
  * ------------------------------------------------*/
-void fluxF(double **rhs)
+void fluxF(int start, int end)
 {
-	int    i, ir, ii, il, j, jj, jr, ic, s, k, ik, iv;
+	int    i, ii, jj, ic, s, k, ik, iv;
 	double ph[maxeqn], phi_N[maxeqn], dsm[5], dsp[5], Fplus[6][maxeqn], UU[maxeqn],
 		   Fminus[6][maxeqn], dFplus[5][maxeqn], dFminus[5][maxeqn], LF[maxeqn],
 		   qave[maxeqn], f06[maxeqn], le[maxeqn][maxeqn], re[maxeqn][maxeqn],
@@ -38,20 +22,17 @@ void fluxF(double **rhs)
 
 	double lf[6] = {0., -1./12., 7./12., 7./12., -1./12., 0.};
 
-	void boundX();
 	double phin(double fa, double fb, double fc, double fd);
 	void getEigenvector(double qave[], double p, double t, double ga, double kx, 
 		                double ky, double (*le)[maxeqn], double (*re)[maxeqn]);
 
-	il = config1.Ng - 1;
-	ir = config1.ni + config1.Ng;
-	jr = config1.nj + config1.Ng;
+	int il = start + config1.Ng - 1;
+	int ir = end + config1.Ng;
+	int jr = config1.nj + config1.Ng;
 
-    boundX();
-
-	for(j=config1.Ng; j<jr; j++)
+	for(int j = config1.Ng; j<jr; j++)
 	{
-		for(i=0; i<I0; i++)
+		for(i=start; i<end+2*config1.Ng; i++)
 		{
 		/*---- convert to 1D-array ----*/
 			ic = i*J0 + j;
@@ -170,7 +151,7 @@ void fluxF(double **rhs)
 		}
 
 		jj = j-config1.Ng;
-		for(i=config1.Ng; i<ir; i++)
+		for(i=start+config1.Ng; i<ir; i++)
 		{
 			ii = i - config1.Ng;
 			ic = ii*config1.nj + jj;
@@ -183,7 +164,7 @@ void fluxF(double **rhs)
 /*---------------------------------------------------
  * Calculate the inviscid flux in y direction
  * ------------------------------------------------*/
-void fluxG(double **rhs)
+void fluxG(int start, int end)
 {
 	int    i, ir, ii, j, jr, jj, jl, ic, s, k, jk, iv;
 	double ph[maxeqn], phi_N[maxeqn], dsm[5], dsp[5], Fplus[6][maxeqn], UU[maxeqn],
@@ -195,18 +176,15 @@ void fluxG(double **rhs)
 	double lf[6] = {0., -1./12., 7./12., 7./12., -1./12., 0.};
 
 	double phin(double fa, double fb, double fc, double fd);
-	void boundY();
 	void getEigenvector(double qave[], double p, double t, double ga, double kx, 
 		                double ky, double (*le)[maxeqn], double (*re)[maxeqn]);
 
 
-	ir = config1.ni + config1.Ng;
+	ir = end + config1.Ng;
 	jr = config1.nj + config1.Ng;
 	jl = config1.Ng - 1;
 
-	boundY();
-
-	for(i=config1.Ng; i<ir; i++)
+	for(i = start + config1.Ng; i<ir; i++)
 	{
 		for(j=0; j<J0; j++)
 		{
@@ -324,7 +302,7 @@ void fluxG(double **rhs)
 			jj = j - config1.Ng;//0 - N-1
 			ic = ii*config1.nj + jj;//point in fulid part
 			for(iv=0; iv<neqv; iv++)
-				rhs[ic][iv] = rhs[ic][iv] -(U1d.flux[j][iv] - U1d.flux[j-1][iv])/dyc;
+				rhs[ic][iv] -= (U1d.flux[j][iv] - U1d.flux[j-1][iv])/dyc;
 
 			// the rhs at j=config1.Ng is actually not used
 		}

@@ -10,16 +10,13 @@
 /*--------------------------------------------------------------
  * Calculate viscous flux in x direction
  * -------------------------------------------------------------*/
-void vfluxF(double **rhs)
+void vfluxF(int start, int end)
 {
 	int i, j, il, ir, jr, ii, jj, k, ik, ic, ivar, nvar,
 		idr, idu, idv, idt, idm, idk, idux, iduy, idvx, idvy, idtx, idty;
 	double  Ec0, coef_Re, coef_e, fv[12];
 	double interpo[6]={1./60., -2./15., 37./60., 37./60., -2./15., 1./60.};
 	double approxi[6]={-1./90., 25./180., -245./180., 245./180., -25./180., 1./90.};
-	void interpoDY();
-
-	interpoDY();
 
     idr  = 0;
 	idu  = 1;
@@ -37,8 +34,8 @@ void vfluxF(double **rhs)
     nvar = 12;
 	/*--------------------------------------------------*/
 
-   	il = config1.Ng - 1;
-	ir = config1.ni + config1.Ng;
+   	il = start + config1.Ng - 1;
+	ir = end + config1.Ng;
     jr = config1.nj + config1.Ng;
 
 	Ec0 = 1.;
@@ -47,7 +44,7 @@ void vfluxF(double **rhs)
 
     for(j=config1.Ng; j<jr; j++)
     {
-        for(i=0; i<I0; i++)
+        for(i=start; i<end+2*config1.Ng; i++)
         {
         	/*---- convert to 1D-array ----*/
         	ic = i*J0 + j;
@@ -125,12 +122,12 @@ void vfluxF(double **rhs)
 		 * Confirmed! */
 
 		jj = j-config1.Ng;
-		for(i=config1.Ng; i<ir; i++)
+		for(i=start+config1.Ng; i<ir; i++)
 		{
 			ii = i - config1.Ng;
 			ic = ii*config1.nj + jj;
 			for(k=0; k<neqv; k++)
-				rhs[ic][k] = rhs[ic][k] + (U1d.flux[i][k] - U1d.flux[i-1][k])/dxc;
+				rhs[ic][k] += (U1d.flux[i][k] - U1d.flux[i-1][k])/dxc;
 		}
 	}
 }
@@ -139,16 +136,13 @@ void vfluxF(double **rhs)
 /*--------------------------------------------------------------
  * Calculate viscous Flux in j direction
  * -------------------------------------------------------------*/
-void vfluxG(double **rhs)
+void vfluxG(int start, int end)
 {
 	int i, j, jl, ir, jr, ii, jj, k, jk, ic, ivar, nvar,
 		idr, idu, idv, idt, idm, idk, idux, iduy, idvx, idvy, idtx, idty;
 	double  Ec0, coef_Re, coef_e, fv[12];
 	double interpo[6]={1./60., -2./15., 37./60., 37./60., -2./15., 1./60.};
 	double approxi[6]={-1./90., 25./180., -245./180., 245./180., -25./180., 1./90.};
-	void interpoDX();
-
-	interpoDX();
 
     idr  = 0;
 	idu  = 1;
@@ -167,14 +161,14 @@ void vfluxG(double **rhs)
 	/*--------------------------------------------------*/
 
    	jl = config1.Ng - 1;
-	ir = config1.ni + config1.Ng;
+	ir = end + config1.Ng;
     jr = config1.nj + config1.Ng;
 
 	Ec0 = 1.;
 	coef_Re = 1.;
 	coef_e  = 1.;
 
-    for(i=config1.Ng; i<ir; i++)
+    for(i = start + config1.Ng; i<ir; i++)
     {
         for(j=0; j<J0; j++)
         {
@@ -258,7 +252,7 @@ void vfluxG(double **rhs)
 			jj = j - config1.Ng;
 			ic = ii*config1.nj + jj;
 			for(k=0; k<neqv; k++)
-				rhs[ic][k] = rhs[ic][k] + (U1d.flux[j][k] - U1d.flux[j-1][k])/dyc;
+				rhs[ic][k] += (U1d.flux[j][k] - U1d.flux[j-1][k])/dyc;
 		}
 	}
 }
@@ -266,17 +260,17 @@ void vfluxG(double **rhs)
 /*---------------------------------------------------
  * interpolation for dU/dy at (i+1/2, j)
  * ------------------------------------------------*/
-void interpoDY()
+void interpoDY(int start, int end)
 {
     int i, ir, ii, j, jj, jr, ns, ic, ic1, icm, icp, k;
 	double ujr, ujl, vjr, vjl, tjr, tjl;
 	double interpo[6]={1./60., -2./15., 37./60., 37./60., -2./15., 1./60.};
 
-	ir = config1.ni + config1.Ng;
+	ir = end + config1.Ng;
     jr = config1.nj + config1.Ng;
 
     /* 1. interpolation for all the j derivatives. */
-	for(i=config1.Ng; i<ir; i++)
+	for(i = start + config1.Ng; i<ir; i++)
     {
 		for(j=config1.Ng; j<jr; j++)
     	{
@@ -313,20 +307,20 @@ void interpoDY()
 /*---------------------------------------------------
  * interpolation for dU/dx at (i, j+1/2)
  * ------------------------------------------------*/
-void interpoDX()
+void interpoDX(int start, int end)
 {
     int i, ir, ii, j, jr, ic, icm, icp;
 	double uir, uil, vir, vil, tir, til;
 	double interpo[6]={1./60., -2./15., 37./60., 37./60., -2./15., 1./60.};
 
-	ir = config1.ni + config1.Ng;
+	ir = end + config1.Ng;
     jr = config1.nj + config1.Ng;
 
     /* 1. interpolation for all the i derivatives. */
 
 	for(j=config1.Ng; j<jr; j++)
 	{
-		for(i=config1.Ng; i<ir; i++)
+		for(i=start+config1.Ng; i<ir; i++)
     	{
     		ic = i*J0 + j;
     		uir = 0.;

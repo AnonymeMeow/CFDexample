@@ -14,13 +14,11 @@ void endjob()
 {
 	void freeU(int nlen, struct strct_U *U);
 	void freeUv();
-	void freeU1d(int);
 	void freeOthers();
 
 	freeU(I0*J0, &U);
 
 	freeUv();
-	freeU1d(MAX(I0,J0));
 	freeOthers();
 
 	free(mesh.x);

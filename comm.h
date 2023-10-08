@@ -79,7 +79,7 @@ inline struct strct_Uv
 }Uv;
 
 /*- flux related variables -*/
-inline struct strct_flux
+inline thread_local struct strct_flux
 {
 	double* xix, * xiy, * etx, * ety, * yas, * rho,
 		* du, * dv, * dt,
