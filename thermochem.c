@@ -29,8 +29,6 @@ void gettherm(int nc, double **q, double **qs, double *p,
 	 tem_min = 20.0;
 	 tem_max = 20000.0;
 
-	FILE *outId;
-
 	if(config1.gasModel == 0)
 	{
 		/*-- for calorically perfect gas--*/
@@ -44,19 +42,16 @@ void gettherm(int nc, double **q, double **qs, double *p,
 			p[ic] = (gam1[ic] - 1)*(q[ic][3] - temp)*q[ic][0]/Upsilon;
 			t[ic] = p[ic]/q[ic][0]/rgas1[ic];
 			tem = t[ic]*temRef;
-			// if( !(tem_min<tem && tem<tem_max))
-// 			{
-// 				outId = fopen("outInfo.dat", "a");
-// 				fprintf(outId, "T = %f (K) at at i=%d, j=%d\n", tem, ic/config1.nj, ic%config1.nj);
-// 				fclose(outId);
-// 				printf("T = %f (K) at at i=%d, j=%d\n", tem, ic/config1.nj, ic%config1.nj);
-// 				printf("The temperature may be unphysical for ideal gas model \n");
-// #ifdef MPI_RUN
-// 				MPI_Abort( MPI_COMM_WORLD, 41);
-// #else
-// 				endjob();
-// #endif
-// 			}
+			if( !(tem_min<tem && tem<tem_max))
+			{
+				printf("T = %f (K) at at i=%d, j=%d\n", tem, ic/config1.nj, ic%config1.nj);
+				printf("The temperature may be unphysical for ideal gas model \n");
+#ifdef MPI_RUN
+				MPI_Abort( MPI_COMM_WORLD, 99);
+#else
+				endjob();
+#endif
+			}
 
 		}
 	}
@@ -169,20 +164,17 @@ void gettherm(int nc, double **q, double **qs, double *p,
 					    }
 					    if(!(tem_min<t[ic] && t[ic]<tem_max))
 					    {
-							outId = fopen("outInfo.dat", "a");
-					    	fprintf(outId, "----------\n");
-					    	fprintf(outId, "myid%d Newton method T out of range. \n",MyID);
-					    	fprintf(outId, "Tem = %e at i=%d, j=%d, ic=%d\n", U.tem[ic],  ic/config1.nj, ic%config1.nj,ic);
-					    	fprintf(outId, "U.tem = %e \n", U.tem[ic]);
-					    	fprintf(outId, "Maybe reduce time-step size...\n");
-					        fprintf(outId, "----------\n");
-							fclose(outId);
-
+					    	printf("----------\n");
+					    	printf("myid%d Newton method T out of range. \n",MyID);
+					    	printf("Tem = %e at i=%d, j=%d, ic=%d\n", U.tem[ic],  ic/config1.nj, ic%config1.nj,ic);
+					    	printf("U.tem = %e \n", U.tem[ic]);
+					    	printf("Maybe reduce time-step size...\n");
+					        printf("----------\n");
 							/* At this stage, one can set temperature to the last time step value,
 							 * i.e.  t[ic] = tem; But it is recommended to kill the program and
 							 * examine the running conditions*/
 #ifdef MPI_RUN
-							MPI_Abort( MPI_COMM_WORLD, 42);
+							MPI_Abort( MPI_COMM_WORLD, 99);
 #else
 							endjob();
 #endif
@@ -295,7 +287,7 @@ double getes(int ns, double t)
 	{
 		printf("[getes] unsupported gasModel\n");
 #ifdef MPI_RUN
-			MPI_Abort( MPI_COMM_WORLD, 43);
+			MPI_Abort( MPI_COMM_WORLD, 99);
 #else
 			endjob();
 #endif
@@ -365,7 +357,7 @@ void gettrans(int nc, double **qs, double *t, double *gam1,
 		{
 			printf("unsupported viscosity model... \n");
 #ifdef MPI_RUN
-			MPI_Abort( MPI_COMM_WORLD, 44);
+			MPI_Abort( MPI_COMM_WORLD, 99);
 #else
 			endjob();
 #endif
@@ -565,7 +557,7 @@ void gettrans(int nc, double **qs, double *t, double *gam1,
 		{
 			printf("unsupported viscosity model... \n");
 #ifdef MPI_RUN
-			MPI_Abort( MPI_COMM_WORLD, 45);
+			MPI_Abort( MPI_COMM_WORLD, 99);
 #else
 			endjob();
 #endif

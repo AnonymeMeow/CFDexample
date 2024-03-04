@@ -157,7 +157,7 @@ void readmesh()
 	{
 		printf("grid file set%d.dat not found! \n", MyID);
 #ifdef MPI_RUN
-		MPI_Abort( MPI_COMM_WORLD, 11);
+		MPI_Abort( MPI_COMM_WORLD, 99);
 #else
 		exit(0);
 #endif
@@ -178,7 +178,7 @@ void readmesh()
 			{
 				printf("format error in grid file set%d.dat! \n", MyID);
 #ifdef MPI_RUN
-				MPI_Abort( MPI_COMM_WORLD, 12);
+				MPI_Abort( MPI_COMM_WORLD, 99);
 #else
 			    exit(0);
 #endif
@@ -207,7 +207,7 @@ void readmesh()
 		{
 			printf("mesh file mesh.dat not found! \n");
 #ifdef MPI_RUN
-				MPI_Abort( MPI_COMM_WORLD, 13);
+				MPI_Abort( MPI_COMM_WORLD, 99);
 #else
 			    exit(0);
 #endif
@@ -224,7 +224,7 @@ void readmesh()
 		    	{
 					printf("format error in mesh file! \n");
 		#ifdef MPI_RUN
-					MPI_Abort( MPI_COMM_WORLD, 14);
+					MPI_Abort( MPI_COMM_WORLD, 99);
 		#else
 					exit(0);
 		#endif
@@ -320,7 +320,7 @@ void cheminit()
 		{
 			printf("input mixture error! \n");
 #ifdef MPI_RUN
-	MPI_Abort( MPI_COMM_WORLD, 15);
+	MPI_Abort( MPI_COMM_WORLD, 99);
 #else
 	endjob();
 #endif
@@ -372,7 +372,7 @@ void therminit()
 		{
 			printf("[scarf_glenn] format error in istate, rmw, hfrom\n");
 #ifdef MPI_RUN
-	MPI_Abort( MPI_COMM_WORLD, 16);
+	MPI_Abort( MPI_COMM_WORLD, 99);
 #else
 	endjob();
 #endif
@@ -452,7 +452,7 @@ void therminit()
 	{
 		printf("\n species missing in the file thermal file !!!\n");
 #ifdef MPI_RUN
-	MPI_Abort( MPI_COMM_WORLD, 17);
+	MPI_Abort( MPI_COMM_WORLD, 99);
 #else
 	endjob();
 #endif
@@ -497,7 +497,7 @@ void muBlottner()
 	{
 		printf("scarf_blottner.dat not found! \n");
 #ifdef MPI_RUN
-	MPI_Abort( MPI_COMM_WORLD, 18);
+	MPI_Abort( MPI_COMM_WORLD, 99);
 #else
 	endjob();
 #endif
@@ -543,7 +543,7 @@ void muBlottner()
 	{
 		printf("\n species missing in the file trans.dat !!!\n");
 #ifdef MPI_RUN
-		MPI_Abort( MPI_COMM_WORLD, 19);
+		MPI_Abort( MPI_COMM_WORLD, 99);
 #else
 		endjob();
 #endif
@@ -586,7 +586,7 @@ void muCollision()
 		{
 			printf("[scarf_collision.dat] format error! \n");
 #ifdef MPI_RUN
-	MPI_Abort( MPI_COMM_WORLD, 110);
+	MPI_Abort( MPI_COMM_WORLD, 99);
 #else
 	endjob();
 #endif
@@ -616,7 +616,7 @@ void muCollision()
 	{
 		printf("\n species missing in the scarf_collision.dat !!!\n");
 #ifdef MPI_RUN
-		MPI_Abort( MPI_COMM_WORLD, 122);
+		MPI_Abort( MPI_COMM_WORLD, 99);
 #else
 		endjob();
 #endif
@@ -650,7 +650,7 @@ void reaction(FILE *fp)
 	{
 		printf("reaction name missing in chemical file \n");
 #ifdef MPI_RUN
-		MPI_Abort( MPI_COMM_WORLD, 112);
+		MPI_Abort( MPI_COMM_WORLD, 99);
 #else
 		endjob();
 #endif
@@ -757,7 +757,7 @@ Label:  if(fgets(linebuf,sizeof(linebuf),fp) == NULL){printf("format error in ch
 		{
 			printf("[reaction] format error in af, nr, thetaf \n");
 #ifdef MPI_RUN
-		MPI_Abort( MPI_COMM_WORLD, 113);
+		MPI_Abort( MPI_COMM_WORLD, 99);
 #else
 		endjob();
 #endif
@@ -775,7 +775,7 @@ Label:  if(fgets(linebuf,sizeof(linebuf),fp) == NULL){printf("format error in ch
 			{
 				printf("third body coefficients not found! \n");
 #ifdef MPI_RUN
-		MPI_Abort( MPI_COMM_WORLD, 114);
+		MPI_Abort( MPI_COMM_WORLD, 99);
 #else
 		endjob();
 #endif
@@ -802,7 +802,7 @@ Label:  if(fgets(linebuf,sizeof(linebuf),fp) == NULL){printf("format error in ch
 				{
 					printf("[reaction] format error in ab,nb, thetab \n");
 #ifdef MPI_RUN
-		MPI_Abort( MPI_COMM_WORLD, 115);
+		MPI_Abort( MPI_COMM_WORLD, 99);
 #else
 		endjob();
 #endif
@@ -820,7 +820,7 @@ Label:  if(fgets(linebuf,sizeof(linebuf),fp) == NULL){printf("format error in ch
 				{
 					printf("[reaction] format error in Br[1] ~ Br[5]\n");
 #ifdef MPI_RUN
-		MPI_Abort( MPI_COMM_WORLD, 116);
+		MPI_Abort( MPI_COMM_WORLD, 99);
 #else
 		endjob();
 #endif

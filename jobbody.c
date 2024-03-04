@@ -73,7 +73,7 @@ void jobbody()
 		if(MyID == 0)
 		{
 			sum_t = sum_t + dtc;
-			if(iStep%1000 == 0)
+			if(iStep%100 == 0)
 			{
 				// run on the cluster platform, output all the information to a file.
 				outId = fopen("outInfo.dat", "a");
@@ -233,7 +233,7 @@ void mpiSendrecv()
 		 * modified.   */
 		printf("The size of MPI array is smaller than required! \n");
 		printf("Modified the value of 'mpicell' in comm.h... \n");
-		MPI_Abort( MPI_COMM_WORLD, 31);
+		MPI_Abort( MPI_COMM_WORLD, 99);
 	}
 
 	for(i=0; i<config1.Ng; i++)

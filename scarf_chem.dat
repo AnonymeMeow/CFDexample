@@ -11,7 +11,7 @@
 *     reaction names(char)
 *     --repeat reaction records
 *
-2 3 4
+2 3 3
 O O2 N2
 mix1:
 0. 0.233
@@ -19,28 +19,21 @@ mix2:
 0. 0.233
 Air_DK model
 1 arrhenius type, O2 dissociation
-  O2+M=O+O+M;
-  forward:
-  3.6e12 -1.0 59500 0
-  third body coefficient
-  1.0 1.0 0.0 0.0 0.0
-  backward:
-  3.0e03 -0.5 0.0  0
-2 arrhenius type, O2 dissociation
   O2+O=O+O+O;
   forward:
   9.0e13 -1.0 59500 0
   backward:
   7.5e04 -0.5 0.0  0
-3 arrhenius type, O2 dissociation
+2 arrhenius type, O2 dissociation
   O2+O2=O+O+O2;
   forward:
   3.24e13 -1.0 59500 0
   backward:
   2.7e04 -0.5 0.0  0
-4 arrhenius type, O2 dissociation
+3 arrhenius type, O2 dissociation
   O2+N2=O+O+N2;
   forward:
   7.2e12 -1.0 59500 0
   backward:
   6.0e03 -0.5 0.0  0
+

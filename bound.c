@@ -23,7 +23,7 @@ void boundX()
 	 /* left side, solid wall */
 	if(MyID == 0)
 	{
-        ii = 2*config1.Ng - 1; // 5 ->  0, 1, 2
+        ii = 2*config1.Ng - 1; // 5, 4, 3 ->  0, 1, 2
     	for(i=0; i<config1.Ng; i++)
     	{
     		for(j=config1.Ng; j<jr; j++)
@@ -31,8 +31,8 @@ void boundX()
     			ic = i*J0 + j;
 		    	ic1 = ii*J0 + j;
 		    	Ug.q[ic][0] =  Ug.q[ic1][0];
-		    	Ug.q[ic][1] =  -Ug.q[ic1][1];
-		    	Ug.q[ic][2] =  -Ug.q[ic1][2];
+		    	Ug.q[ic][1] = -Ug.q[ic1][1];
+		    	Ug.q[ic][2] = -Ug.q[ic1][2];
 		    	Ug.q[ic][3] =  Ug.q[ic1][3];
 		    	Ug.tem[ic]  =  Ug.tem[ic1];
 		    	Ug.pre[ic]  =  Ug.pre[ic1];
@@ -80,7 +80,7 @@ void boundX()
 	/* right side, solid wall */
 	if(MyID == NMAXproc)
 	{
-		ii = ir -1;  //N+2 ->  N+3,N+4,N+5
+		ii = ir -1;  //N+2, N+1, N ->  N+3,N+4,N+5
 				for(i=ir; i<I0; i++)
 				{
 					for(j=config1.Ng; j<jr; j++)
@@ -89,8 +89,8 @@ void boundX()
 				    	ic1 = ii*J0 + j;
 
 				    	Ug.q[ic][0] =  Ug.q[ic1][0];
-				    	Ug.q[ic][1] =  -Ug.q[ic1][1];
-				    	Ug.q[ic][2] =  -Ug.q[ic1][2];
+				    	Ug.q[ic][1] = -Ug.q[ic1][1];
+				    	Ug.q[ic][2] = -Ug.q[ic1][2];
 				    	Ug.q[ic][3] =  Ug.q[ic1][3];
 				    	Ug.tem[ic]  =  Ug.tem[ic1];
 				    	Ug.pre[ic]  =  Ug.pre[ic1];
@@ -213,7 +213,6 @@ void boundY()
 
 	for(i=config1.Ng; i<ir; i++)
 	{
-		/* lower side, solid wall */
 		jj = 2*config1.Ng - 1;
 		for(j=0; j<config1.Ng; j++)
 		{
@@ -239,7 +238,7 @@ void boundY()
 		    		jj -= 1;
 		    }
 
-    	/* upper side, plate */
+    	/* upper side, outlet */
 		jj = jr -1;  //N+2, N+1, N ->  N+3,N+4,N+5
 		for(j=jr; j<J0; j++)
 		{
@@ -247,8 +246,8 @@ void boundY()
 			ic1 = i*J0 + jj;
 
 		    Ug.q[ic][0] =  Ug.q[ic1][0];
-		    Ug.q[ic][1] =  1.0;
-		    Ug.q[ic][2] =  -Ug.q[ic1][2];
+		    Ug.q[ic][1] =  Ug.q[ic1][1];
+		    Ug.q[ic][2] =  Ug.q[ic1][2];
 		    Ug.q[ic][3] =  Ug.q[ic1][3];
 		    Ug.tem[ic]  =  Ug.tem[ic1];
 		    Ug.pre[ic]  =  Ug.pre[ic1];
@@ -267,3 +266,5 @@ void boundY()
     }
 
 }
+
+

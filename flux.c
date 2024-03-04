@@ -266,7 +266,7 @@ void fluxG(double **rhs)
 			U1d.gam[j] =  Ug.gam[ic];
 		}
 
-		for(j=jl; j<jr; j++) // loop for j faces get the value at lines of fluid without ghost cell
+		for(j=jl; j<jr; j++) // loop for j faces
 		{
 			etx     = 0.5*(U1d.etx[j]  + U1d.etx[j+1]);
 			ety     = 0.5*(U1d.ety[j]  + U1d.ety[j+1]);
@@ -283,57 +283,57 @@ void fluxG(double **rhs)
 			maxLamda = 0.;
 			for(k=0; k<=5; k++)
 			{
-				jk  = j-2 + k;//jk 0-5
-				te  = U1d.u[jk]*U1d.etx[jk] + U1d.v[jk]*U1d.ety[jk];//v
-				alf = sqrt(U1d.etx[jk]*U1d.etx[jk] + U1d.ety[jk]*U1d.ety[jk]);//1
-				c   = sqrt(U1d.gam[jk]*U1d.p[jk]/(U1d.rho[jk])*Upsilon);//c
-				temp = fabs(te) + c*alf;//v + c
+				jk  = j-2 + k;
+				te  = U1d.u[jk]*U1d.etx[jk] + U1d.v[jk]*U1d.ety[jk];
+				alf = sqrt(U1d.etx[jk]*U1d.etx[jk] + U1d.ety[jk]*U1d.ety[jk]);
+				c   = sqrt(U1d.gam[jk]*U1d.p[jk]/(U1d.rho[jk])*Upsilon);
+				temp = fabs(te) + c*alf;
 				if(temp > maxLamda)
 				  	maxLamda = temp;
 			}
 
-			for(iv=0; iv<neqn; iv++)//neqn=4 number of solution without chemical terms
+			for(iv=0; iv<neqn; iv++)
 				LF[iv] = 0.;
-			for(k=0; k<=5; k++)//j = 0
+			for(k=0; k<=5; k++)
 			{
-				jk = j-2 + k;//jk 0-5
+				jk = j-2 + k;
 
-				te     = U1d.u[jk]*U1d.etx[jk] + U1d.v[jk]*U1d.ety[jk];//v
-				f06[0] = U1d.yas[jk] * U1d.rho[jk]*te;//rho*v
-				f06[1] = U1d.yas[jk] * (U1d.rho[jk]*U1d.u[jk]*te + U1d.etx[jk]*U1d.p[jk]*Upsilon);//rho*uv
-				f06[2] = U1d.yas[jk] * (U1d.rho[jk]*U1d.v[jk]*te + U1d.ety[jk]*U1d.p[jk]*Upsilon);//rho*vv
-				f06[3] = U1d.yas[jk] * (U1d.rho[jk]*U1d.e[jk] + U1d.p[jk]*Upsilon)*te;//rho*e + p
+				te     = U1d.u[jk]*U1d.etx[jk] + U1d.v[jk]*U1d.ety[jk];
+				f06[0] = U1d.yas[jk] * U1d.rho[jk]*te;
+				f06[1] = U1d.yas[jk] * (U1d.rho[jk]*U1d.u[jk]*te + U1d.etx[jk]*U1d.p[jk]*Upsilon);
+				f06[2] = U1d.yas[jk] * (U1d.rho[jk]*U1d.v[jk]*te + U1d.ety[jk]*U1d.p[jk]*Upsilon);
+				f06[3] = U1d.yas[jk] * (U1d.rho[jk]*U1d.e[jk] + U1d.p[jk]*Upsilon)*te;
 
 				UU[0] = U1d.rho[jk];
 				UU[1] = U1d.rho[jk]*U1d.u[jk];
 				UU[2] = U1d.rho[jk]*U1d.v[jk];
 				UU[3] = U1d.rho[jk]*U1d.e[jk];
 
-				for(iv=0; iv<neqn; iv++)//0-3
+				for(iv=0; iv<neqn; iv++)
 				{
-					Fplus[k][iv]  = 0.5*(f06[iv] + maxLamda*UU[iv]*U1d.yas[jk]);//rho*v+lamda*rho change
-					Fminus[k][iv] = 0.5*(f06[iv] - maxLamda*UU[iv]*U1d.yas[jk]);//rho*v-lamda*rho change
+					Fplus[k][iv]  = 0.5*(f06[iv] + maxLamda*UU[iv]*U1d.yas[jk]);
+					Fminus[k][iv] = 0.5*(f06[iv] - maxLamda*UU[iv]*U1d.yas[jk]);
 
-					LF[iv] = LF[iv] + lf[k]*f06[iv];//1/12*
+					LF[iv] = LF[iv] + lf[k]*f06[iv];
 				}
 			}
 
-			for(k=0; k<=4; k++)//0-4
+			for(k=0; k<=4; k++)
 				for(iv = 0; iv<neqn; iv++)
 				{
-					dFplus[k][iv]  = Fplus[k+1][iv]  - Fplus[k][iv];//1-5  -  0-4  deltaflux
+					dFplus[k][iv]  = Fplus[k+1][iv]  - Fplus[k][iv];
 					dFminus[k][iv] = Fminus[k+1][iv] - Fminus[k][iv];
 				}
 
-			for(s=0; s<neqn; s++)//0-3
+			for(s=0; s<neqn; s++)
 			{
-				for(k=0; k<=4; k++)//0-4
+				for(k=0; k<=4; k++)
 				{
 					sum1 = 0.;
 					sum2 = 0.;
 					for (iv=0; iv<neqn; iv++)
 					{
-						sum1 = sum1 + dFplus[k][iv]*le[s][iv];//delta*left engiv
+						sum1 = sum1 + dFplus[k][iv]*le[s][iv];
 						sum2 = sum2 + dFminus[k][iv]*le[s][iv];
 					}
 					dsp[k] = sum1;
@@ -343,27 +343,27 @@ void fluxG(double **rhs)
 				phip = phin(dsp[0], dsp[1], dsp[2], dsp[3]);
 				phim = phin(dsm[4], dsm[3], dsm[2], dsm[1]);
 
-				ph[s] = -phip + phim;//upwind part phi
+				ph[s] = -phip + phim;
 			}
 
 			for(s=0; s<neqn; s++)
 			{
 				sum3 = 0.;
 				for(iv = 0; iv<neqn; iv++)
-					sum3 = sum3 + ph[iv]*re[s][iv];//phi*right engiv
+					sum3 = sum3 + ph[iv]*re[s][iv];
 				phi_N[s] = sum3;
 			}
 
 				for(iv=0; iv<neqn; iv++)
-					U1d.flux[j][iv] = LF[iv] + phi_N[iv];//final part fi+1/2
+					U1d.flux[j][iv] = LF[iv] + phi_N[iv];
 
 		}
 
-		ii = i - config1.Ng;//i = 3 -- N+2    ii  0 - N-1
-		for(j=config1.Ng; j<jr; j++)// j = 3 - N+2
+		ii = i - config1.Ng;
+		for(j=config1.Ng; j<jr; j++)
 		{
-			jj = j - config1.Ng;//0 - N-1
-			ic = ii*config1.nj + jj;//point in fulid part
+			jj = j - config1.Ng;
+			ic = ii*config1.nj + jj;
 			for(iv=0; iv<neqn; iv++)
 				rhs[ic][iv] = rhs[ic][iv] -(U1d.flux[j][iv] - U1d.flux[j-1][iv])/dyc;
 
@@ -464,13 +464,13 @@ void fluxchemF(double **rhs)
 
 				te  = U1d.u[ik]*U1d.xix[ik] + U1d.v[ik]*U1d.xiy[ik];
 				for(ns=0; ns<m; ns++)
-				f06[ns] = U1d.yas[ik]*(U1d.rho[ik]*U1d.qs[ik][ns]*te);
+					f06[ns] = U1d.yas[ik]*(U1d.rho[ik]*U1d.qs[ik][ns]*te);
 				f06[m]   = U1d.yas[ik]*(U1d.rho[ik]*U1d.u[ik]*te + U1d.xix[ik]*U1d.p[ik]*Upsilon);
 				f06[m+1] = U1d.yas[ik]*(U1d.rho[ik]*U1d.v[ik]*te + U1d.xiy[ik]*U1d.p[ik]*Upsilon);
 				f06[m+2] = U1d.yas[ik]*(U1d.rho[ik]*U1d.e[ik] + U1d.p[ik]*Upsilon)*te;
 
 				for(ns=0; ns<m; ns++)
-				UU[ns] = U1d.rho[ik]*U1d.qs[ik][ns];
+					UU[ns] = U1d.rho[ik]*U1d.qs[ik][ns];
 				UU[m]   = U1d.rho[ik]*U1d.u[ik];
 				UU[m+1] = U1d.rho[ik]*U1d.v[ik];
 				UU[m+2] = U1d.rho[ik]*U1d.e[ik];

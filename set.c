@@ -192,7 +192,7 @@ void importjob()
 		{
 			printf("%s not found! \n", filename);
 #ifdef MPI_RUN
-			MPI_Abort( MPI_COMM_WORLD, 21);
+			MPI_Abort( MPI_COMM_WORLD, 99);
 #else
 			endjob();
 #endif
@@ -273,7 +273,7 @@ void importjob()
 			{
 				printf("format error in tcv.dat \n");
 #ifdef MPI_RUN
-				MPI_Abort( MPI_COMM_WORLD, 22);
+				MPI_Abort( MPI_COMM_WORLD, 99);
 #else
 				endjob();
 #endif
