@@ -1,0 +1,28 @@
+10 80 3 8
+0.1  0.1  1.0 1.0
+0.1  0.1  0
+
+1. 0.2  1.
+0.75 0.9
+
+/*-----------------data format---------------*/
+ni, nj, Ng, nproc
+L_x, L_y, ratio_x, ratio_y
+non_x, non_y, gtype
+M_1, M_2, R_c
+alpha1, alpha2
+
+/*-----------------Notes---------------*/
+
+1. 'ni' and 'nj' are the grid points in x and y direction; 'Ng' is the ghost cells, 'nproc' is the processors.
+2. 'L_x' and 'L_y' are length of the rectangle in x and y direction.
+3. 'non_x' and 'non_y' are the non-dimensionalized value of L_x and L_y. 'gtype' is the type of the grid, '0' for rectangle, '1' for cylinder.
+4. if 'gtype' == 1, then the code continue to read M_1, M_2, R_c, alpha1, alpha2.
+   'M_1' and 'M_2' correspond to the center offset distance in x and y. (now 'L_x' and 'L_y' are long/short axis of an ellipse)
+   'R_c' is the radius of the cylinder.
+   'alpha1' and 'alpha2' are the open angle of the ellipse (divided by pi/2).
+
+Ref. for cylinder:
+L_x = 3.; L_y = 6.;
+M_1 = 1.; M_2 = 0.2; R_c = 1.;	
+alpha1 = 0.75*(pi/2.); alpha2 = 0.9*(pi/2.);
