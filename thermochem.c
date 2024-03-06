@@ -623,12 +623,12 @@ void chemsource(int nc, double **q, double **qs, double *tem, double **rhs)
 	// the lowest temperature to trigger the reaction.
 	Trigger_T = 1800.;
 
-	sour = (double**)malloc(sizeof(double*)*nc);
-	dtdq = (double**)malloc(sizeof(double*)*nc);
+	sour = (double**)get_buffered_memory(sizeof(double*)*nc);
+	dtdq = (double**)get_buffered_memory(sizeof(double*)*nc);
 	for(ic=0; ic<nc; ic++)
 	{
-		dtdq[ic] = (double*)malloc(sizeof(double)*neqn);
-		sour[ic] = (double*)malloc(sizeof(double)*m);
+		sour[ic] = (double*)get_buffered_memory(sizeof(double)*m);
+		dtdq[ic] = (double*)get_buffered_memory(sizeof(double)*neqn);
 	}
 
     alfa = LRef/(rhoRef*uRef);
@@ -867,13 +867,13 @@ void chemsource(int nc, double **q, double **qs, double *tem, double **rhs)
 
     /*----- 7. Free the array memory -----*/
 
-    for(ic=0; ic<nc; ic++)
+    for(ic=nc-1; ic>=0; ic--)
     {
-    	free(sour[ic]);
-    	free(dtdq[ic]);
+    	free_buffered_memory(dtdq[ic]);
+    	free_buffered_memory(sour[ic]);
     }
-	free(sour);
-	free(dtdq);
+	free_buffered_memory(dtdq);
+	free_buffered_memory(sour);
 }
 
 /*--------------------------------------------------------------

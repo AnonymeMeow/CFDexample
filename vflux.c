@@ -10,6 +10,8 @@
 #include"comm.h"
 #include"chemdata.h"
 
+#define NSPEC_BUFFER 10
+
 /*--------------------------------------------------------------
  * Calculate viscous flux in x direction
  * -------------------------------------------------------------*/
@@ -17,7 +19,7 @@ void vfluxF(double **rhs)
 {
 	int i, j, il, ir, jr, ii, jj, k, ik, ic, ivar, nvar,
 		idr, idu, idv, idt, idm, idk, idux, iduy, idvx, idvy, idtx, idty;
-	double  Ec0, coef_Re, coef_e, *fv;
+	double  Ec0, coef_Re, coef_e, fv[12];
 	double interpo[6]={1./60., -2./15., 37./60., 37./60., -2./15., 1./60.};
 	double approxi[6]={-1./90., 25./180., -245./180., 245./180., -25./180., 1./90.};
 
@@ -43,7 +45,6 @@ void vfluxF(double **rhs)
 
     nvar = 12;
 
-	fv = (double*)malloc(sizeof(double)*nvar);
 	/*--------------------------------------------------*/
 
    	il = config1.Ng - 1;
@@ -137,7 +138,6 @@ void vfluxF(double **rhs)
 		}
 	}
 
-    free(fv);
 	freevFlux(I0, &U1d);
 }
 
@@ -149,7 +149,7 @@ void vfluxG(double **rhs)
 {
 	int i, j, jl, ir, jr, ii, jj, k, jk, ic, ivar, nvar,
 		idr, idu, idv, idt, idm, idk, idux, iduy, idvx, idvy, idtx, idty;
-	double  Ec0, coef_Re, coef_e, *fv;
+	double  Ec0, coef_Re, coef_e, fv[12];
 	double interpo[6]={1./60., -2./15., 37./60., 37./60., -2./15., 1./60.};
 	double approxi[6]={-1./90., 25./180., -245./180., 245./180., -25./180., 1./90.};
 
@@ -175,7 +175,6 @@ void vfluxG(double **rhs)
 
     nvar = 12;
 
-	fv  = (double*)malloc(sizeof(double)*nvar);
 	/*--------------------------------------------------*/
 
    	jl = config1.Ng - 1;
@@ -268,7 +267,6 @@ void vfluxG(double **rhs)
 		}
 	}
 
-    free(fv);
 	freevFlux(J0, &U1d);
 }
 
@@ -279,7 +277,7 @@ void vfluxchemF(double **rhs)
 {
 	int i, j, il, ir, jr, ii, jj, k, ik, ic, ns, ivar, nvar, m,
 		idr, idu, idv, idt, idm, idk, idux, iduy, idvx, idvy, idtx, idty;
-	double *fvhs, *fvdiff, *gradx, *grady, *fv;
+	double fvhs[NSPEC_BUFFER], fvdiff[NSPEC_BUFFER], gradx[NSPEC_BUFFER], grady[NSPEC_BUFFER], fv[NSPEC_BUFFER + 12];
 	double hs, es, cpref, sumqs, Ec0, coef_rhos, coef_hs, coef_e, coef_Re;
 	double interpo[6]={1./60., -2./15., 37./60., 37./60., -2./15., 1./60.};
 	double approxi[6]={-1./90., 25./180., -245./180., 245./180., -25./180., 1./90.};
@@ -308,11 +306,6 @@ void vfluxchemF(double **rhs)
 
     m = config1.nspec;
     nvar = 12 + m;
-	fvhs   = (double*)malloc(sizeof(double)*m);
-	fvdiff = (double*)malloc(sizeof(double)*m);
-	gradx  = (double*)malloc(sizeof(double)*m);
-	grady  = (double*)malloc(sizeof(double)*m);
-	fv   = (double*)malloc(sizeof(double)*nvar);
 
 	/*--------------------------------------------------*/
 
@@ -447,12 +440,6 @@ void vfluxchemF(double **rhs)
 		}
 	}
 
-    free(fv);
-	free(fvhs);
-	free(fvdiff);
-	free(gradx);
-	free(grady);
-
 	freevFlux(I0, &U1d);
 }
 
@@ -464,7 +451,7 @@ void vfluxchemG(double **rhs)
 {
 	int i, j, jl, ir, jr, ii, jj, k, jk, ic, ns, ivar, m, nvar,
 		idr, idu, idv, idt, idm, idk, idux, iduy, idvx, idvy, idtx, idty;
-	double *fvhs, *fvdiff, *gradx, *grady, *fv;
+	double fvhs[NSPEC_BUFFER], fvdiff[NSPEC_BUFFER], gradx[NSPEC_BUFFER], grady[NSPEC_BUFFER], fv[NSPEC_BUFFER + 12];
 	double hs, es, sumqs, Ec0, cpref, coef_rhos, coef_hs, coef_e, coef_Re;
 	double interpo[6]={1./60., -2./15., 37./60., 37./60., -2./15., 1./60.};
 	double approxi[6]={-1./90., 25./180., -245./180., 245./180., -25./180., 1./90.};
@@ -492,11 +479,6 @@ void vfluxchemG(double **rhs)
 
     m = config1.nspec;
 	nvar = 12 + m;
-	fvhs   = (double*)malloc(sizeof(double)*m);
-	fvdiff = (double*)malloc(sizeof(double)*m);
-	gradx  = (double*)malloc(sizeof(double)*m);
-	grady  = (double*)malloc(sizeof(double)*m);
-	fv     = (double*)malloc(sizeof(double)*nvar);
 	/*--------------------------------------------------*/
 
    	jl = config1.Ng - 1;
@@ -632,12 +614,6 @@ void vfluxchemG(double **rhs)
 		}
 	}
 
-    free(fv);
-	free(fvhs);
-	free(fvdiff);
-	free(gradx);
-	free(grady);
-
 	freevFlux(J0, &U1d);
 }
 
@@ -647,14 +623,11 @@ void vfluxchemG(double **rhs)
 void interpoDY()
 {
     int i, ir, ii, j, jj, jr, ns, ic, ic1, icm, icp, k;
-	double ujr, ujl, vjr, vjl, tjr, tjl, *ysjr, *ysjl;
+	double ujr, ujl, vjr, vjl, tjr, tjl, ysjr[NSPEC_BUFFER], ysjl[NSPEC_BUFFER];
 	double interpo[6]={1./60., -2./15., 37./60., 37./60., -2./15., 1./60.};
 
 	ir = config1.ni + config1.Ng;
     jr = config1.nj + config1.Ng;
-
-    ysjr = (double*)malloc(sizeof(double)*config1.nspec);
-    ysjl = (double*)malloc(sizeof(double)*config1.nspec);
 
     /* 1. interpolation for all the j derivatives. */
 	for(i=config1.Ng; i<ir; i++)
@@ -798,8 +771,6 @@ void interpoDY()
 		    }
 		}
     }
-    free(ysjr);
-    free(ysjl);
 }
 
 /*---------------------------------------------------
@@ -808,14 +779,11 @@ void interpoDY()
 void interpoDX()
 {
     int i, ir, ii, j, jr, ns, ic, icm, icp, k;
-	double uir, uil, vir, vil, tir, til, *ysir, *ysil;
+	double uir, uil, vir, vil, tir, til, ysir[NSPEC_BUFFER], ysil[NSPEC_BUFFER];
 	double interpo[6]={1./60., -2./15., 37./60., 37./60., -2./15., 1./60.};
 
 	ir = config1.ni + config1.Ng;
     jr = config1.nj + config1.Ng;
-
-    ysir = (double*)malloc(sizeof(double)*config1.nspec);
-    ysil = (double*)malloc(sizeof(double)*config1.nspec);
 
     /* 1. interpolation for all the i derivatives. */
 
@@ -857,17 +825,14 @@ void interpoDX()
     					}
     			}
     	}
-    		/* 2. get the derivative on (i,j) cells */
-    		Uv.u_xi[ic] = (uir - uil)/dxc;
-    		Uv.v_xi[ic] = (vir - vil)/dxc;
-    		Uv.T_xi[ic] = (tir - til)/dxc;
-    		if(config1.gasModel != 0)
-    			for(ns=0; ns<config1.nspec; ns++)
-    				Uv.qs_xi[ic][ns] = (ysir[ns] - ysil[ns])/dxc;
-    	}
-
-    free(ysir);
-    free(ysil);
+		/* 2. get the derivative on (i,j) cells */
+		Uv.u_xi[ic] = (uir - uil)/dxc;
+		Uv.v_xi[ic] = (vir - vil)/dxc;
+		Uv.T_xi[ic] = (tir - til)/dxc;
+		if(config1.gasModel != 0)
+			for(ns=0; ns<config1.nspec; ns++)
+				Uv.qs_xi[ic][ns] = (ysir[ns] - ysil[ns])/dxc;
+	}
 }
 
 /*---------------------------------------------------
@@ -877,26 +842,26 @@ void allocatevFlux(int nlen, struct strct_flux *f)
 {
 	int i;
 
-	f->du = (double*)malloc(sizeof(double)*nlen);
-	f->dv = (double*)malloc(sizeof(double)*nlen);
-	f->dt = (double*)malloc(sizeof(double)*nlen);
-	f->rho= (double*)malloc(sizeof(double)*nlen);
-	f->u  = (double*)malloc(sizeof(double)*nlen);
-	f->v  = (double*)malloc(sizeof(double)*nlen);
-	f->p  = (double*)malloc(sizeof(double)*nlen);
-	f->t  = (double*)malloc(sizeof(double)*nlen);
-	f->mu = (double*)malloc(sizeof(double)*nlen);
-	f->kt = (double*)malloc(sizeof(double)*nlen);
-	f->qs = (double**)malloc(sizeof(double*)*nlen);
-	f->dqs = (double**)malloc(sizeof(double*)*nlen);
-	f->Ds = (double**)malloc(sizeof(double*)*nlen);
-	f->flux = (double**)malloc(sizeof(double*)*nlen);
+	f->du = (double*)get_buffered_memory(sizeof(double)*nlen);
+	f->dv = (double*)get_buffered_memory(sizeof(double)*nlen);
+	f->dt = (double*)get_buffered_memory(sizeof(double)*nlen);
+	f->rho= (double*)get_buffered_memory(sizeof(double)*nlen);
+	f->u  = (double*)get_buffered_memory(sizeof(double)*nlen);
+	f->v  = (double*)get_buffered_memory(sizeof(double)*nlen);
+	f->p  = (double*)get_buffered_memory(sizeof(double)*nlen);
+	f->t  = (double*)get_buffered_memory(sizeof(double)*nlen);
+	f->mu = (double*)get_buffered_memory(sizeof(double)*nlen);
+	f->kt = (double*)get_buffered_memory(sizeof(double)*nlen);
+	f->qs = (double**)get_buffered_memory(sizeof(double*)*nlen);
+	f->dqs = (double**)get_buffered_memory(sizeof(double*)*nlen);
+	f->Ds = (double**)get_buffered_memory(sizeof(double*)*nlen);
+	f->flux = (double**)get_buffered_memory(sizeof(double*)*nlen);
 	for(i=0; i<nlen; i++)
 	{
-		f->qs[i]  = (double*)malloc(sizeof(double)*config1.nspec);
-		f->Ds[i]  = (double*)malloc(sizeof(double)*config1.nspec);
-		f->dqs[i] = (double*)malloc(sizeof(double)*config1.nspec);
-		f->flux[i]  = (double*)malloc(sizeof(double)*neqn);
+		f->qs[i]  = (double*)get_buffered_memory(sizeof(double)*config1.nspec);
+		f->Ds[i]  = (double*)get_buffered_memory(sizeof(double)*config1.nspec);
+		f->dqs[i] = (double*)get_buffered_memory(sizeof(double)*config1.nspec);
+		f->flux[i]  = (double*)get_buffered_memory(sizeof(double)*neqn);
 	}
 }
 /*---------------------------------------------------
@@ -906,26 +871,25 @@ void freevFlux(int nlen, struct strct_flux *f)
 {
 	int i;
 
-	free(f->du);
-	free(f->dv);
-	free(f->dt);
-	free(f->rho);
-	free(f->u);
-	free(f->v);
-	free(f->p);
-	free(f->t);
-	free(f->mu);
-	free(f->kt);
-
-	for(i=0; i<nlen; i++)
+	for(i=nlen-1; i>=0; i--)
 	{
-		free(f->dqs[i]);
-		free(f->Ds[i]);
-		free(f->qs[i]);
-		free(f->flux[i]);
+		free_buffered_memory(f->flux[i]);
+		free_buffered_memory(f->dqs[i]);
+		free_buffered_memory(f->Ds[i]);
+		free_buffered_memory(f->qs[i]);
 	}
-	free(f->dqs);
-	free(f->Ds);
-	free(f->qs);
-	free(f->flux);
+	free_buffered_memory(f->flux);
+	free_buffered_memory(f->Ds);
+	free_buffered_memory(f->dqs);
+	free_buffered_memory(f->qs);
+	free_buffered_memory(f->kt);
+	free_buffered_memory(f->mu);
+	free_buffered_memory(f->t);
+	free_buffered_memory(f->p);
+	free_buffered_memory(f->v);
+	free_buffered_memory(f->u);
+	free_buffered_memory(f->rho);
+	free_buffered_memory(f->dt);
+	free_buffered_memory(f->dv);
+	free_buffered_memory(f->du);
 }

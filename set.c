@@ -8,6 +8,9 @@
 #include<mpi.h>
 #include"comm.h"
 #include"chemdata.h"
+
+#define MEMORY_BUFFER_FACTOR 20
+
 /*---------------------------------------------------
  * set and initialize the job
  * ------------------------------------------------*/
@@ -45,6 +48,8 @@ void setjob()
 		importjob();
 
 	setGeom();
+	memory_buffer.top = memory_buffer.buffer = (char*)malloc(sizeof(double)*nc1*MEMORY_BUFFER_FACTOR);
+	memory_buffer.bottom = NULL;
 }
 
 /*---------------------------------------------------
@@ -637,4 +642,20 @@ void allocateOthers()
 				dsdq[ic][ns] = (double*)malloc(sizeof(double)*neqn);
 		}
 	}
+}
+
+void* get_buffered_memory(size_t size)
+{
+	*(char**)memory_buffer.top = memory_buffer.bottom;
+	memory_buffer.bottom = memory_buffer.top;
+	memory_buffer.top += sizeof(char*) + size;
+	return (void*)((char**)memory_buffer.bottom + 1);
+}
+
+void free_buffered_memory(void* ptr)
+{
+	if ((char*)ptr - memory_buffer.bottom != sizeof(char*))
+		exit(-1);
+	memory_buffer.top = memory_buffer.bottom;
+	memory_buffer.bottom = *(char**)memory_buffer.bottom;
 }

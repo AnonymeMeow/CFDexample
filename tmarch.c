@@ -120,9 +120,9 @@ void updateqs(int nc, double **q, double **qs, double **rhs, double dt, int idt)
 	}
 	else
 	{
-		dmat1 = (double**)malloc(sizeof(double*)*dim);
+		dmat1 = (double**)get_buffered_memory(sizeof(double*)*dim);
 		for(i=0; i<dim; i++)
-			dmat1[i] = (double*)malloc(sizeof(double)*dim);
+			dmat1[i] = (double*)get_buffered_memory(sizeof(double)*dim);
 
 		/*--------1. initialize the Jacobian matrix --------*/
 		for(i=0; i<dim; i++)
@@ -211,10 +211,10 @@ void updateqs(int nc, double **q, double **qs, double **rhs, double dt, int idt)
 		}
 
 		/*--------5. free memory --------*/
-		for(i=0; i<dim; i++)
-			free(dmat1[i]);
+		for(i=dim-1; i>=0; i--)
+			free_buffered_memory(dmat1[i]);
 
-		free(dmat1);
+		free_buffered_memory(dmat1);
 	}
 }
 

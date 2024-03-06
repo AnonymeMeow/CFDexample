@@ -979,24 +979,24 @@ void allocateFlux(int nlen, struct strct_flux *f)
 {
 	int i;
 
-	f->xix  = (double*)malloc(sizeof(double)*nlen);
-	f->xiy  = (double*)malloc(sizeof(double)*nlen);
-	f->etx  = (double*)malloc(sizeof(double)*nlen);
-	f->ety  = (double*)malloc(sizeof(double)*nlen);
-	f->yas  = (double*)malloc(sizeof(double)*nlen);
-	f->rho  = (double*)malloc(sizeof(double)*nlen);
-	f->u    = (double*)malloc(sizeof(double)*nlen);
-	f->v    = (double*)malloc(sizeof(double)*nlen);
-	f->e    = (double*)malloc(sizeof(double)*nlen);
-	f->p    = (double*)malloc(sizeof(double)*nlen);
-	f->t    = (double*)malloc(sizeof(double)*nlen);
-	f->gam  = (double*)malloc(sizeof(double)*nlen);
-	f->qs   = (double**)malloc(sizeof(double*)*nlen);
-	f->flux = (double**)malloc(sizeof(double*)*nlen);
+	f->xix  = (double*)get_buffered_memory(sizeof(double)*nlen);
+	f->xiy  = (double*)get_buffered_memory(sizeof(double)*nlen);
+	f->etx  = (double*)get_buffered_memory(sizeof(double)*nlen);
+	f->ety  = (double*)get_buffered_memory(sizeof(double)*nlen);
+	f->yas  = (double*)get_buffered_memory(sizeof(double)*nlen);
+	f->rho  = (double*)get_buffered_memory(sizeof(double)*nlen);
+	f->u    = (double*)get_buffered_memory(sizeof(double)*nlen);
+	f->v    = (double*)get_buffered_memory(sizeof(double)*nlen);
+	f->e    = (double*)get_buffered_memory(sizeof(double)*nlen);
+	f->p    = (double*)get_buffered_memory(sizeof(double)*nlen);
+	f->t    = (double*)get_buffered_memory(sizeof(double)*nlen);
+	f->gam  = (double*)get_buffered_memory(sizeof(double)*nlen);
+	f->qs   = (double**)get_buffered_memory(sizeof(double*)*nlen);
+	f->flux = (double**)get_buffered_memory(sizeof(double*)*nlen);
 	for(i=0; i<nlen; i++)
 	{
-		f->qs[i]     = (double*)malloc(sizeof(double)*config1.nspec);
-		f->flux[i]   = (double*)malloc(sizeof(double)*neqn);
+		f->qs[i]     = (double*)get_buffered_memory(sizeof(double)*config1.nspec);
+		f->flux[i]   = (double*)get_buffered_memory(sizeof(double)*neqn);
 	}
 }
 /*---------------------------------------------------
@@ -1006,25 +1006,25 @@ void freeFlux(int nlen, struct strct_flux *f)
 {
 	int i;
 
-	free(f->xix);
-	free(f->xiy);
-	free(f->etx);
-	free(f->ety);
-	free(f->yas);
-	free(f->rho);
-	free(f->u);
-	free(f->v);
-	free(f->e);
-	free(f->p);
-	free(f->t);
-
-	free(f->gam);
-
-	for(i=0; i<nlen; i++)
+	for(i=nlen-1; i>=0; i--)
 	{
-		free(f->qs[i]);
-		free(f->flux[i]);
+		free_buffered_memory(f->flux[i]);
+		free_buffered_memory(f->qs[i]);
 	}
-	free(f->qs);
-	free(f->flux);
+	free_buffered_memory(f->flux);
+	free_buffered_memory(f->qs);
+
+	free_buffered_memory(f->gam);
+
+	free_buffered_memory(f->t);
+	free_buffered_memory(f->p);
+	free_buffered_memory(f->e);
+	free_buffered_memory(f->v);
+	free_buffered_memory(f->u);
+	free_buffered_memory(f->rho);
+	free_buffered_memory(f->yas);
+	free_buffered_memory(f->ety);
+	free_buffered_memory(f->etx);
+	free_buffered_memory(f->xiy);
+	free_buffered_memory(f->xix);
 }
