@@ -23,14 +23,14 @@ void boundX()
 	 /* left side */
 	if(MyID == 0)
 	{
-        ii = 2*config1.Ng - 1; // 5 ->  0, 1, 2
+        ii = 2*config1.Ng - 1; // 5, 4, 3 ->  0, 1, 2
     	for(i=0; i<config1.Ng; i++)
     	{
     		for(j=config1.Ng; j<jr; j++)
 		    {
     			ic = i*J0 + j;
 		    	ic1 = ii*J0 + j;
-#ifdef Cavity
+#if defined Cavity || defined Tube
 		    	Ug.q[ic][0] =  Ug.q[ic1][0];
 		    	Ug.q[ic][1] =  -Ug.q[ic1][1]; // solid wall
 		    	Ug.q[ic][2] =  -Ug.q[ic1][2]; // solid wall
@@ -89,7 +89,7 @@ void boundX()
 	/* right side */
 	if(MyID == NMAXproc)
 	{
-		ii = ir -1;  //N+2 ->  N+3,N+4,N+5
+		ii = ir -1;  //N+2, N+1, N ->  N+3,N+4,N+5
 				for(i=ir; i<I0; i++)
 				{
 					for(j=config1.Ng; j<jr; j++)
@@ -98,7 +98,7 @@ void boundX()
 				    	ic1 = ii*J0 + j;
 
 				    	Ug.q[ic][0] =  Ug.q[ic1][0];
-#ifdef Cavity
+#if defined Cavity || defined Tube
 				    	Ug.q[ic][1] =  -Ug.q[ic1][1]; // solid wall
 				    	Ug.q[ic][2] =  -Ug.q[ic1][2]; // solid wall
 #elif defined Plate
@@ -265,6 +265,9 @@ void boundY()
 #ifdef Cavity
 		    Ug.q[ic][1] =  1.0; // plate
 		    Ug.q[ic][2] =  -Ug.q[ic1][2]; // plate
+#elif defined Tube
+		    Ug.q[ic][1] =  Ug.q[ic1][1];
+		    Ug.q[ic][2] =  Ug.q[ic1][2];
 #endif
 		    Ug.q[ic][3] =  Ug.q[ic1][3];
 		    Ug.tem[ic]  =  Ug.tem[ic1];

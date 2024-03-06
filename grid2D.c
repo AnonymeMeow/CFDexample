@@ -14,7 +14,7 @@ int main(argc, argv)
 {
 	int i, j, ic, ic1, ic2, nc,id, ir1, ii, jj, gtype,
 		jr, jr1, I0, J0, i1, ik, nik, ni, nj, ir, Ng, nproc;
-	double xm, ym, dx, dy, d_xi, d_et, R_c, rrr, pi, jm1, sumj1, jm2, sumj2;
+	double xm, ym, dx, dy, d_xi, d_et, R_c, rrr, pi, jm1, sumj1;
 	double L_a, L_b, M_1, M_2, Mn_1, Mn_2, alpha1, alpha2;
 	char filename[20];
 	FILE  *fp;
@@ -99,9 +99,23 @@ int main(argc, argv)
     			if(j == Ng)
     				dy = 0.;
     			else
-    				dy = M_2*(1. - pow(alpha2, j-Ng))/(1. - alpha2); 				
-    		}
+    				dy = M_2*(1. - pow(alpha2, j-Ng))/(1. - alpha2);
+#elif defined Tube
+    			sumj1 = (j - Ng)*1.e-4;
+    			if(sumj1 <= 0.01)
+    			{
+    				dy = (double)(j - Ng);
+    				dy = 1.e-4*dy;
+    				sumj1 = dy;
+    				jm1 = j;
+    			}
+    			else
+    			{
+    				jj = j - jm1;
+    				dy = sumj1 + 1.e-4*jj+ (jj-1)*jj/2.*alpha2;
+    			}
 #endif
+    		}
 
     		for(i=Ng; i<ir; i++)
     		{
