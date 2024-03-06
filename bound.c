@@ -20,7 +20,7 @@ void boundX()
 #ifdef MPI_RUN
 	/*---- assign MPI boundary ----*/
 
-	 /* left side, inlet free */
+	 /* left side */
 	if(MyID == 0)
 	{
         ii = 2*config1.Ng - 1; // 5 ->  0, 1, 2
@@ -30,12 +30,14 @@ void boundX()
 		    {
     			ic = i*J0 + j;
 		    	ic1 = ii*J0 + j;
+#ifdef Plate
 		    	Ug.q[ic][0] =  Ug.q[ic1][0];
-		    	Ug.q[ic][1] =  1361.12;
-		    	Ug.q[ic][2] =  0.;
+		    	Ug.q[ic][1] =  1361.12; // inlet free
+		    	Ug.q[ic][2] =  0.; // inlet free
 		    	Ug.q[ic][3] =  Ug.q[ic1][3];
-		    	Ug.tem[ic]  =  288.16;
-		    	Ug.pre[ic]  =  1.01325e5;
+		    	Ug.tem[ic]  =  288.16; // inlet free
+		    	Ug.pre[ic]  =  1.01325e5; // inlet free
+#endif
 
 				Ug.gam[ic]  =  Ug.gam[ic1];
 			    Ug.mu[ic]   =  Ug.mu[ic1];
@@ -77,7 +79,7 @@ void boundX()
 		    }
 	}
 
-	/* right side, outlet free */
+	/* right side */
 	if(MyID == NMAXproc)
 	{
 		ii = ir -1;  //N+2 ->  N+3,N+4,N+5
@@ -88,12 +90,14 @@ void boundX()
 						ic = i*J0 + j;
 				    	ic1 = ii*J0 + j;
 
+#ifdef Plate
 				    	Ug.q[ic][0] =  Ug.q[ic1][0];
-				    	Ug.q[ic][1] =  Ug.q[ic1][1];
-				    	Ug.q[ic][2] =  Ug.q[ic1][2];
+				    	Ug.q[ic][1] =  Ug.q[ic1][1]; // inlet free
+				    	Ug.q[ic][2] =  Ug.q[ic1][2]; // inlet free
 				    	Ug.q[ic][3] =  Ug.q[ic1][3];
 				    	Ug.tem[ic]  =  Ug.tem[ic1];
 				    	Ug.pre[ic]  =  Ug.pre[ic1];
+#endif
 
 						Ug.gam[ic]  =  Ug.gam[ic1];
 				    	Ug.mu[ic]   =  Ug.mu[ic1];
@@ -211,7 +215,7 @@ void boundY()
 	 ir = config1.ni + config1.Ng;
 	 jr = config1.nj + config1.Ng;
 	
-#ifdef MPI_RUN
+#if defined MPI_RUN && defined Plate
 	if(MyID <= 2)
 	{
 		for(i=config1.Ng; i<ir; i++)
@@ -329,9 +333,5 @@ void boundY()
 		    }
         }
 	}
-	
 #endif
-
 }
-
-
