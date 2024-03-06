@@ -20,7 +20,7 @@ void boundX()
 #ifdef MPI_RUN
 	/*---- assign MPI boundary ----*/
 
-	 /* left side, solid wall */
+	 /* left side */
 	if(MyID == 0)
 	{
         ii = 2*config1.Ng - 1; // 5 ->  0, 1, 2
@@ -30,12 +30,14 @@ void boundX()
 		    {
     			ic = i*J0 + j;
 		    	ic1 = ii*J0 + j;
+#ifdef Cavity
 		    	Ug.q[ic][0] =  Ug.q[ic1][0];
-		    	Ug.q[ic][1] =  -Ug.q[ic1][1];
-		    	Ug.q[ic][2] =  -Ug.q[ic1][2];
+		    	Ug.q[ic][1] =  -Ug.q[ic1][1]; // solid wall
+		    	Ug.q[ic][2] =  -Ug.q[ic1][2]; // solid wall
 		    	Ug.q[ic][3] =  Ug.q[ic1][3];
-		    	Ug.tem[ic]  =  Ug.tem[ic1];
-		    	Ug.pre[ic]  =  Ug.pre[ic1];
+		    	Ug.tem[ic]  =  Ug.tem[ic1]; // solid wall
+		    	Ug.pre[ic]  =  Ug.pre[ic1]; // solid wall
+#endif
 
 				Ug.gam[ic]  =  Ug.gam[ic1];
 			    Ug.mu[ic]   =  Ug.mu[ic1];
@@ -77,7 +79,7 @@ void boundX()
 		    }
 	}
 
-	/* right side, solid wall */
+	/* right side */
 	if(MyID == NMAXproc)
 	{
 		ii = ir -1;  //N+2 ->  N+3,N+4,N+5
@@ -88,12 +90,14 @@ void boundX()
 						ic = i*J0 + j;
 				    	ic1 = ii*J0 + j;
 
+#ifdef Cavity
 				    	Ug.q[ic][0] =  Ug.q[ic1][0];
-				    	Ug.q[ic][1] =  -Ug.q[ic1][1];
-				    	Ug.q[ic][2] =  -Ug.q[ic1][2];
+				    	Ug.q[ic][1] =  -Ug.q[ic1][1]; // solid wall
+				    	Ug.q[ic][2] =  -Ug.q[ic1][2]; // solid wall
 				    	Ug.q[ic][3] =  Ug.q[ic1][3];
 				    	Ug.tem[ic]  =  Ug.tem[ic1];
 				    	Ug.pre[ic]  =  Ug.pre[ic1];
+#endif
 
 						Ug.gam[ic]  =  Ug.gam[ic1];
 				    	Ug.mu[ic]   =  Ug.mu[ic1];
@@ -211,6 +215,7 @@ void boundY()
 	 ir = config1.ni + config1.Ng;
 	 jr = config1.nj + config1.Ng;
 
+#ifdef Cavity
 	for(i=config1.Ng; i<ir; i++)
 	{
 		/* lower side, solid wall */
@@ -265,5 +270,5 @@ void boundY()
 	    	jj -= 1;
 		}
     }
-
+#endif
 }
