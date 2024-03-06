@@ -45,8 +45,6 @@ void setjob()
 		importjob();
 
 	setGeom();
-	
-
 }
 
 /*---------------------------------------------------
@@ -216,7 +214,7 @@ void importjob()
 						fscanf(fp," %le",&Uf.qs[ic][ns]);
 				}
 			}
-		  fclose(fp);
+		fclose(fp);
 
 		/*----2. write the new tcv.dat file for each processors----*/
 		for(id=0; id<nproc; id++)
@@ -412,7 +410,6 @@ void setGeom()
 
 	if(config1.visModel != 0)
 	{
-
 	   	il = config1.Ng - 1;
 		jl = config1.Ng - 1;
 		ir = config1.ni + config1.Ng;
@@ -457,7 +454,6 @@ void setGeom()
 
 				Uv.fe1[ic] = (sxsx + sysy) * yas;
 				Uv.fe2[ic] = (sxex + syey) * yas;
-
 			}
 		}
 
@@ -504,7 +500,6 @@ void setGeom()
 	            Uv.ge2[ic]  = (exex + eyey) * yas;
 	    	}
 	    }
-
 	}
 }
 /*---------------------------------------------------
@@ -540,7 +535,6 @@ void allocateU(int nlen, struct strct_U *U)
 			U->di[i] = (double*)malloc(sizeof(double)*config1.nspec);
 		}
 	}
-
 }
 
 /*---------------------------------------------------

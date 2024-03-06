@@ -73,7 +73,6 @@ void freeU(int nlen, struct strct_U *U)
 	}
 	free(U->qs);
 	free(U->di);
-
 }
 /*---------------------------------------------------
  * free memory of dU variables
@@ -166,5 +165,4 @@ void freeOthers()
 		free(dsdq);
 	}
 	free(qso);
-
 }

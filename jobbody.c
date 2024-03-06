@@ -59,7 +59,6 @@ void jobbody()
 
 		for(ik=0; ik<config1.timeOrder; ik++)
 		{
-
 #ifdef MPI_RUN
 			mpiSendrecv();
 #endif
@@ -104,9 +103,7 @@ void jobbody()
 				fclose(outId);
 				postprocess(iStep);
 			}
-
 		}
-
 	}
 
 	if(MyID == 0)
@@ -137,7 +134,6 @@ void RKtvd3(int ik, double dt)
 		/* Perfect Gas Solver */
 		flux(rhs);
 		updateq(nc, U.q, rhs, dt, ik);
-
 	}
 	else
 	{
@@ -148,9 +144,7 @@ void RKtvd3(int ik, double dt)
 
 		updateqs(nc, U.q, U.qs, rhs, dt, ik);
 	}
-
 }
-
 
 /*---------------------------------------------------
  * Calculate the time step
@@ -194,14 +188,12 @@ double getdt(int step)
 	return(dt);
 }
 
-
 #ifdef MPI_RUN
 /*---------------------------------------------------
  * MPI configuration
  * ------------------------------------------------*/
 void mpiConfig()
 {
-
 	NMAXproc = nproc - 1;
 	if(MyID == NMAXproc)
 		nachbar_rechts = MPI_PROC_NULL;
@@ -291,7 +283,5 @@ void mpiSendrecv()
 	MPI_Sendrecv(&mpiSend_ql, counts, MPI_DOUBLE, nachbar_links,  2, &mpiRecv_qr, counts, MPI_DOUBLE, nachbar_rechts, 2, MPI_COMM_WORLD, &status);
 
 	MPI_Barrier(MPI_COMM_WORLD);
-
 }
 #endif
-

@@ -40,4 +40,3 @@ void startjob(int argc, char *argv[])
 		fclose(outId);
 	}
 }
-

@@ -90,7 +90,6 @@ void saveData(int step)
 		}
     fclose(fp);
 #endif
-
 }
 
 /*---------------------------------------------------
@@ -98,7 +97,6 @@ void saveData(int step)
  *  Created on: Apr 7, 2014
  * ------------------------------------------------*/
 void postprocess(int istep)
-
 {
 	int i, j, ic, nc, ns, id, mni, ni, nj, nproc, dum0;
 	double x, y, rho, u, v, p, T, e, dum;
@@ -221,4 +219,3 @@ void postprocess(int istep)
     	free(Up.qs);
     }
 }
-

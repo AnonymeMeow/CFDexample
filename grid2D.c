@@ -5,7 +5,7 @@
  *  Update for Cylinder grids On Nov.03, 2014
  */
 
-#if !(defined Cavity || defined Plate || defined Tube)
+#ifndef SCARF
 
 #include<string.h>
 #include<stdio.h>
@@ -157,7 +157,6 @@ int main(int argc, char* argv[])
 			
 			mesh.x[ic] =  L_a * cos(pi - alpha2*rrr) + M_2;
 			mesh.y[ic] =  L_b * sin(pi - alpha2*rrr);
-
     	}
     	// i=ni+Ng line: a circle with radius R_c, center M_1
     	// for(j=Ng; j<jr; j++)
@@ -202,7 +201,7 @@ int main(int argc, char* argv[])
     // 	}
 	// }
 
-	 // Interpolation
+	// Interpolation
     /*
 	for(j=Ng; j<jr; j++)
 	{
@@ -273,7 +272,7 @@ int main(int argc, char* argv[])
 	   interpolate ghost cells for bottom and upper from 0 to I0-1 */
 	for(i=0; i<I0; i++)
 	{
-	     // bottom side
+		// bottom side
 		jj = Ng - 1;
 	    for(j=0; j<Ng; j++)
 	    {
@@ -330,7 +329,6 @@ int main(int argc, char* argv[])
     	ic1 =  (ir1-1)*J0 + j;
     	mesh.x_xi[ic]  = (mesh.x[ic] - mesh.x[ic1])/d_xi;
     	mesh.y_xi[ic]  = (mesh.y[ic] - mesh.y[ic1])/d_xi;
-
 	}
 
 	// y direction
@@ -356,7 +354,6 @@ int main(int argc, char* argv[])
     	ic1 =  i*J0 + jr1-1;
     	mesh.x_et[ic]  = (mesh.x[ic] - mesh.x[ic1])/d_et;
     	mesh.y_et[ic]  = (mesh.y[ic] - mesh.y[ic1])/d_et;
-
 	}
 
 	for(i=0; i<I0; i++)

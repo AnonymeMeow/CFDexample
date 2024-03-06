@@ -26,8 +26,8 @@ void gettherm(int nc, double **q, double **qs, double *p,
 
     /*-- Set a range for the temperature. Terminate the program
      * if un-physical conditions are encountered --*/
-	 tem_min = 20.0;
-	 tem_max = 20000.0;
+	tem_min = 20.0;
+	tem_max = 20000.0;
 
 	FILE *outId;
 
@@ -63,38 +63,38 @@ void gettherm(int nc, double **q, double **qs, double *p,
 	else
 	{
 		/*-- for none calorically perfect gas--*/
-	     ntol = 20;
-	     tol = 1.0e-10;
+		ntol = 20;
+		tol = 1.0e-10;
 
-	     for(ns = 0; ns<config1.nspec; ns++)
-	          rwm[ns] = 1.0/specData[ns].wm;
+		for(ns = 0; ns<config1.nspec; ns++)
+			rwm[ns] = 1.0/specData[ns].wm;
 
-	     /*-- calculate mixture heat capacity, ratio of
-	      *-- specific heats and total energy per mass */
-    	 switch(config1.thermo_base)
-    	 {
-    	 case 0 : // NASA_glenn database
-			  {
-				  for(ic = 0; ic<nc; ic++)
-				  {
-					  /*--recover dimension--*/
-					  tem = t[ic]*temRef;
-					  u = q[ic][1]*uRef;
-					  v = q[ic][2]*uRef;
-					  etot = q[ic][3]*uRef*uRef;
+		/*-- calculate mixture heat capacity, ratio of
+		 *-- specific heats and total energy per mass */
+		switch(config1.thermo_base)
+		{
+		case 0 : // NASA_glenn database
+			{
+				for(ic = 0; ic<nc; ic++)
+				{
+					/*--recover dimension--*/
+					tem = t[ic]*temRef;
+					u = q[ic][1]*uRef;
+					v = q[ic][2]*uRef;
+					etot = q[ic][3]*uRef*uRef;
 
-			    	  temp = 0.;
-			    	  for(ns=0; ns<config1.nspec; ns++)
-			    	  {
-			    			temp = temp + qs[ic][ns]*rwm[ns];
-			    	   }
-			    	  rgas1[ic] = ru*temp;
+					temp = 0.;
+					for(ns=0; ns<config1.nspec; ns++)
+					{
+						temp = temp + qs[ic][ns]*rwm[ns];
+					}
+					rgas1[ic] = ru*temp;
 
-					  icount = 0;
-					  dum = (etot - 0.5*(u*u + v*v));
-					  told = tem;
+					icount = 0;
+					dum = (etot - 0.5*(u*u + v*v));
+					told = tem;
 /*----------------------Start Newton's iteration Method----------------------*/
-					  do{
+					do{
 						nr = 0;
 					    cp = 0. ;
 						temp = 0.;
@@ -133,7 +133,7 @@ void gettherm(int nc, double **q, double **qs, double *p,
 									  + specData[ns].acoef[nr][5]*temp3
 									  + specData[ns].acoef[nr][6]*temp4)*rwm[ns];
 
-							 hs  = ru*(-specData[ns].acoef[nr][0]/temp2
+							hs  = ru*(-specData[ns].acoef[nr][0]/temp2
 									  + specData[ns].acoef[nr][1]*log(temp)/temp
 									  + specData[ns].acoef[nr][2]
 									  + c2*specData[ns].acoef[nr][3]*temp
@@ -142,10 +142,10 @@ void gettherm(int nc, double **q, double **qs, double *p,
 									  + c5*specData[ns].acoef[nr][6]*temp4
 									  +    specData[ns].acoef[nr][7]/temp)*rwm[ns]*temp;
 
-					         hs = hs + cps*(told - temp);
+							hs = hs + cps*(told - temp);
 
-					         energy = energy + qs[ic][ns]*(hs - ru*rwm[ns]*told);
-					         cp = cp + qs[ic][ns]*cps;
+							energy = energy + qs[ic][ns]*(hs - ru*rwm[ns]*told);
+							cp = cp + qs[ic][ns]*cps;
 					    }
 					    cv1[ic] = cp - rgas1[ic];
 					    tnew = told + (dum-energy)/(cv1[ic] + 1.e-20);
@@ -186,24 +186,24 @@ void gettherm(int nc, double **q, double **qs, double *p,
 #else
 							endjob();
 #endif
-					    }
-					  /*--non-dimension--*/
-					  gam1[ic]  = cp/cv1[ic];
-					  t[ic]     = t[ic]/temRef;
-					  cv1[ic]   = cv1[ic]/cvRef;
-					  rgas1[ic] = rgas1[ic]/rgasRef;
-					  p[ic]     = q[ic][0]*rgas1[ic]*t[ic];
-				  }
-			  break;
-			  }
-    	 default:
-    	 {
-    		 printf("the default thermo_base is NASA_glenn data\n");
-    		 endjob();
-    		 break;
-    	 }
+					}
+					/*--non-dimension--*/
+					gam1[ic]  = cp/cv1[ic];
+					t[ic]     = t[ic]/temRef;
+					cv1[ic]   = cv1[ic]/cvRef;
+					rgas1[ic] = rgas1[ic]/rgasRef;
+					p[ic]     = q[ic][0]*rgas1[ic]*t[ic];
+				}
+			break;
+			}
+		default:
+		{
+			printf("the default thermo_base is NASA_glenn data\n");
+			endjob();
+			break;
+    	}
 
-    	 }// end switch
+    	}// end switch
     }
 }
 
@@ -531,7 +531,7 @@ void gettrans(int nc, double **qs, double *t, double *gam1,
 				                upper    = coll.omegad[i] - coll.omegad[i-1];
 				                omegadab = upper/lower*(redtem - coll.omegad[i-1]) + coll.omegad[i-1];
 				                break;
-				             }
+				            }
 						}
 						diffab[na][nb] = dum1*sqrt(avewmab)/(avesigab*avesigab*omegadab);
 					}
@@ -549,7 +549,6 @@ void gettrans(int nc, double **qs, double *t, double *gam1,
 
 				/*--- 3. conductive coefficient ---*/
 				cond[ic] = mu[ic]*cp/config2.Pr0;
-
 			}
 			for(ic=0; ic<nc; ic++)
 			{
@@ -753,7 +752,6 @@ void chemsource(int nc, double **q, double **qs, double *tem, double **rhs)
                  		rdum  = MAX(rdum,tiny);
                  		multf = multf*pow(rdum,reacData[nr].nrsr[ns]);
                  		multb = multb*pow(rdum,reacData[nr].npsr[ns]);
-
                  	}
                  	for(ns = 0; ns<m; ns++)
                  	{
@@ -1033,7 +1031,6 @@ void gibbsenergy(int nr, int nc, double tem, double f[])
 
     f[0] = gibbs;
     f[1] = dgibbs;
-
 }
 /*---------------------------------------------------
  * calculate source term derivatives with respect to
@@ -1068,5 +1065,3 @@ void tem_derivative(double **dtdq)
 		dtdq[ic][m+2] =  rdum;
 	}
 }
-
-
