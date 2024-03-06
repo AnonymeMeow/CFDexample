@@ -4,6 +4,9 @@
  *  Created on: 2014.1.14.
  *
  */
+
+#define MSMPI_NO_DEPRECATE_20
+
 #include <ctype.h>
 #include <string.h>
 #include <math.h>

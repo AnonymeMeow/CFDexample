@@ -5,12 +5,14 @@
  *  Update for Cylinder grids On Nov.03, 2014
  */
 
+#if !(defined Cavity || defined Plate || defined Tube)
+
 #include<string.h>
 #include<stdio.h>
 #include<stdlib.h>
 #include<math.h>
 
-int main(argc, argv)
+int main(int argc, char* argv[])
 {
 	int i, j, ic, ic1, ic2, nc,id, ir1, ii, jj, gtype,
 		jr, jr1, I0, J0, i1, ik, nik, ni, nj, ir, Ng, nproc;
@@ -417,3 +419,4 @@ int main(argc, argv)
     return(0);
 }
 
+#endif
