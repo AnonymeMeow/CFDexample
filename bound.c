@@ -97,12 +97,11 @@ void boundX()
 						ic = i*J0 + j;
 				    	ic1 = ii*J0 + j;
 
-#ifdef Cavity
 				    	Ug.q[ic][0] =  Ug.q[ic1][0];
+#ifdef Cavity
 				    	Ug.q[ic][1] =  -Ug.q[ic1][1]; // solid wall
 				    	Ug.q[ic][2] =  -Ug.q[ic1][2]; // solid wall
 #elif defined Plate
-				    	Ug.q[ic][0] =  Ug.q[ic1][0];
 				    	Ug.q[ic][1] =  Ug.q[ic1][1]; // inlet free
 				    	Ug.q[ic][2] =  Ug.q[ic1][2]; // inlet free
 #endif
@@ -226,7 +225,7 @@ void boundY()
 	 ir = config1.ni + config1.Ng;
 	 jr = config1.nj + config1.Ng;
 
-#ifdef Cavity
+#if defined Cavity || defined Tube
 	for(i=config1.Ng; i<ir; i++)
 	{
 		/* lower side, solid wall */
@@ -255,7 +254,7 @@ void boundY()
 		    		jj -= 1;
 		    }
 
-    	/* upper side, plate */
+    	/* upper side */
 		jj = jr -1;  //N+2, N+1, N ->  N+3,N+4,N+5
 		for(j=jr; j<J0; j++)
 		{
@@ -263,8 +262,10 @@ void boundY()
 			ic1 = i*J0 + jj;
 
 		    Ug.q[ic][0] =  Ug.q[ic1][0];
-		    Ug.q[ic][1] =  1.0;
-		    Ug.q[ic][2] =  -Ug.q[ic1][2];
+#ifdef Cavity
+		    Ug.q[ic][1] =  1.0; // plate
+		    Ug.q[ic][2] =  -Ug.q[ic1][2]; // plate
+#endif
 		    Ug.q[ic][3] =  Ug.q[ic1][3];
 		    Ug.tem[ic]  =  Ug.tem[ic1];
 		    Ug.pre[ic]  =  Ug.pre[ic1];

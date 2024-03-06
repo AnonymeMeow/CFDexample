@@ -44,19 +44,19 @@ void gettherm(int nc, double **q, double **qs, double *p,
 			p[ic] = (gam1[ic] - 1)*(q[ic][3] - temp)*q[ic][0]/Upsilon;
 			t[ic] = p[ic]/q[ic][0]/rgas1[ic];
 			tem = t[ic]*temRef;
-			// if( !(tem_min<tem && tem<tem_max))
-// 			{
-// 				outId = fopen("outInfo.dat", "a");
-// 				fprintf(outId, "T = %f (K) at at i=%d, j=%d\n", tem, ic/config1.nj, ic%config1.nj);
-// 				fclose(outId);
-// 				printf("T = %f (K) at at i=%d, j=%d\n", tem, ic/config1.nj, ic%config1.nj);
-// 				printf("The temperature may be unphysical for ideal gas model \n");
-// #ifdef MPI_RUN
-// 				MPI_Abort( MPI_COMM_WORLD, 41);
-// #else
-// 				endjob();
-// #endif
-// 			}
+			if( !(tem_min<tem && tem<tem_max))
+			{
+				outId = fopen("outInfo.dat", "a");
+				fprintf(outId, "T = %f (K) at at i=%d, j=%d\n", tem, ic/config1.nj, ic%config1.nj);
+				fclose(outId);
+				printf("T = %f (K) at at i=%d, j=%d\n", tem, ic/config1.nj, ic%config1.nj);
+				printf("The temperature may be unphysical for ideal gas model \n");
+#ifdef MPI_RUN
+				MPI_Abort( MPI_COMM_WORLD, 41);
+#else
+				endjob();
+#endif
+			}
 
 		}
 	}

@@ -95,11 +95,13 @@ int main(argc, argv)
     		else
     		{
     			// Geometric sequence
+#if defined Cavity || defined Plate
     			if(j == Ng)
     				dy = 0.;
     			else
     				dy = M_2*(1. - pow(alpha2, j-Ng))/(1. - alpha2); 				
     		}
+#endif
 
     		for(i=Ng; i<ir; i++)
     		{
