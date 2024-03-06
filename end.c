@@ -37,9 +37,7 @@ void endjob()
 		printf("program exits! \n");
 	}
 
-#ifdef MPI_RUN
 	MPI_Finalize();
-#endif
 	exit(0);
 }
 

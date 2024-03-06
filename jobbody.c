@@ -32,11 +32,9 @@ void jobbody()
 	void postprocess(int step);
 	double getdt(int step);
 
-#ifdef MPI_RUN
 	mpiConfig();
 	if(MyID == 0)
 		time_begin = MPI_Wtime();
-#endif
 
 	nc = config1.ni*config1.nj;
 	gettherm(nc, U.q, U.qs, U.pre, U.tem, U.gam, U.rgas, U.cv);
@@ -59,9 +57,7 @@ void jobbody()
 
 		for(ik=0; ik<config1.timeOrder; ik++)
 		{
-#ifdef MPI_RUN
 			mpiSendrecv();
-#endif
 			RKtvd3(ik, dtc);
 			gettherm(nc, U.q, U.qs, U.pre, U.tem, U.gam, U.rgas, U.cv);
 			gettrans(nc, U.qs, U.tem, U.gam, U.cv, U.mu, U.kt, U.di);
@@ -88,9 +84,7 @@ void jobbody()
 		{
 			saveData(iStep);
 
-#ifdef MPI_RUN
 			MPI_Barrier(MPI_COMM_WORLD);
-#endif
 
 			if((MyID==0) && (iStep%config1.ifilm==0))
 			{
@@ -188,7 +182,6 @@ double getdt(int step)
 	return(dt);
 }
 
-#ifdef MPI_RUN
 /*---------------------------------------------------
  * MPI configuration
  * ------------------------------------------------*/
@@ -284,4 +277,3 @@ void mpiSendrecv()
 
 	MPI_Barrier(MPI_COMM_WORLD);
 }
-#endif

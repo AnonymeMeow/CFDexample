@@ -51,13 +51,8 @@ void gettherm(int nc, double **q, double **qs, double *p,
 				fclose(outId);
 				printf("T = %f (K) at at i=%d, j=%d\n", tem, ic/config1.nj, ic%config1.nj);
 				printf("The temperature may be unphysical for ideal gas model \n");
-#ifdef MPI_RUN
 				MPI_Abort( MPI_COMM_WORLD, 41);
-#else
-				endjob();
-#endif
 			}
-
 		}
 	}
 	else
@@ -94,7 +89,7 @@ void gettherm(int nc, double **q, double **qs, double *p,
 					dum = (etot - 0.5*(u*u + v*v));
 					told = tem;
 /*----------------------Start Newton's iteration Method----------------------*/
-					do{
+					do {
 						nr = 0;
 					    cp = 0. ;
 						temp = 0.;
@@ -154,38 +149,34 @@ void gettherm(int nc, double **q, double **qs, double *p,
 					    told = tnew; //
 					    icount = icount + 1;
 
-					    //--Check for convergence or maximum trip count
-					    }while ((fabs(tdiff) > tol) && (icount <= ntol));
+					//--Check for convergence or maximum trip count
+					}while ((fabs(tdiff) > tol) && (icount <= ntol));
 /*----------------------End Newton's iteration Method----------------------*/
 
-					    t[ic] = tnew;
-						
-					    if(icount == ntol)
-					    {
-					    	printf("----------\n");
-					    	printf("myid%d Reached maximum iteration Nr. in determining temperature.\n",MyID);
-					    	printf("T_new=%le, T_old=%le T_diff=%le at i=%d, j=%d. icount=%d\n", tnew, told, tdiff, ic/config1.nj, ic%config1.nj, icount);
-					        printf("----------\n");
-					    }
-					    if(!(tem_min<t[ic] && t[ic]<tem_max))
-					    {
-							outId = fopen("outInfo.dat", "a");
-					    	fprintf(outId, "----------\n");
-					    	fprintf(outId, "myid%d Newton method T out of range. \n",MyID);
-					    	fprintf(outId, "Tem = %e at i=%d, j=%d, ic=%d\n", U.tem[ic],  ic/config1.nj, ic%config1.nj,ic);
-					    	fprintf(outId, "U.tem = %e \n", U.tem[ic]);
-					    	fprintf(outId, "Maybe reduce time-step size...\n");
-					        fprintf(outId, "----------\n");
-							fclose(outId);
+					t[ic] = tnew;
+					
+					if(icount == ntol)
+					{
+						printf("----------\n");
+						printf("myid%d Reached maximum iteration Nr. in determining temperature.\n",MyID);
+						printf("T_new=%le, T_old=%le T_diff=%le at i=%d, j=%d. icount=%d\n", tnew, told, tdiff, ic/config1.nj, ic%config1.nj, icount);
+						printf("----------\n");
+					}
+					if(!(tem_min<t[ic] && t[ic]<tem_max))
+					{
+						outId = fopen("outInfo.dat", "a");
+						fprintf(outId, "----------\n");
+						fprintf(outId, "myid%d Newton method T out of range. \n",MyID);
+						fprintf(outId, "Tem = %e at i=%d, j=%d, ic=%d\n", U.tem[ic],  ic/config1.nj, ic%config1.nj,ic);
+						fprintf(outId, "U.tem = %e \n", U.tem[ic]);
+						fprintf(outId, "Maybe reduce time-step size...\n");
+						fprintf(outId, "----------\n");
+						fclose(outId);
 
-							/* At this stage, one can set temperature to the last time step value,
-							 * i.e.  t[ic] = tem; But it is recommended to kill the program and
-							 * examine the running conditions*/
-#ifdef MPI_RUN
-							MPI_Abort( MPI_COMM_WORLD, 42);
-#else
-							endjob();
-#endif
+						/* At this stage, one can set temperature to the last time step value,
+							* i.e.  t[ic] = tem; But it is recommended to kill the program and
+							* examine the running conditions*/
+						MPI_Abort( MPI_COMM_WORLD, 42);
 					}
 					/*--non-dimension--*/
 					gam1[ic]  = cp/cv1[ic];
@@ -278,7 +269,7 @@ double getes(int ns, double t)
 				  + specData[ns].acoef[nr][5]*temp3
 				  + specData[ns].acoef[nr][6]*temp4)*rwm;
 
-		 hs  = ru*(-specData[ns].acoef[nr][0]/temp2
+		hs  = ru*(-specData[ns].acoef[nr][0]/temp2
 				  + specData[ns].acoef[nr][1]*log(temp)/temp
 				  + specData[ns].acoef[nr][2]
 				  + c2*specData[ns].acoef[nr][3]*temp
@@ -294,14 +285,10 @@ double getes(int ns, double t)
 	else
 	{
 		printf("[getes] unsupported gasModel\n");
-#ifdef MPI_RUN
 			MPI_Abort( MPI_COMM_WORLD, 43);
-#else
-			endjob();
-#endif
 	}
 
-	 return(es);
+	return(es);
 }
 /*--------------------------------------------------------------
  * Calculate transport properties(viscosity, conductivity, ...
@@ -364,11 +351,7 @@ void gettrans(int nc, double **qs, double *t, double *gam1,
 		else
 		{
 			printf("unsupported viscosity model... \n");
-#ifdef MPI_RUN
 			MPI_Abort( MPI_COMM_WORLD, 44);
-#else
-			endjob();
-#endif
 		}
 	}
 	else
@@ -563,11 +546,7 @@ void gettrans(int nc, double **qs, double *t, double *gam1,
 		else
 		{
 			printf("unsupported viscosity model... \n");
-#ifdef MPI_RUN
 			MPI_Abort( MPI_COMM_WORLD, 45);
-#else
-			endjob();
-#endif
 		}
 	}
 }

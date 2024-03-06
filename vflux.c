@@ -704,9 +704,8 @@ void interpoDY()
 				for(ns=0; ns<config1.nspec; ns++)
 					Uv.qs_et[ic][ns] = (ysjr[ns] - ysjl[ns])/dyc;
     }
-    	/* 3. assign boundary condition in direction i */
-#ifdef MPI_RUN
 
+	/* 3. assign boundary condition in direction i */
 	for(j=config1.Ng; j<jr; j++)
 	{
     	/*---- assign MPI boundary ----*/
@@ -797,41 +796,7 @@ void interpoDY()
     					Uv.qs_et[ic][ns] = (mpiRecv_qr[icp].qs[ns] - mpiRecv_qr[icm].qs[ns])/dyc;
     			ii -= 1;
 		    }
-	}
-
-#else
-	{
-        // left side, wall
-        ii = 2*config1.Ng - 1;
-    	for(i=0; i<config1.Ng; i++)
-    	{
-			ic = i*J0 + j;
-	    	ic1 = ii*J0 + j;
-	    	Uv.u_et[ic] = -Uv.u_et[ic1];
-	    	Uv.v_et[ic] = -Uv.v_et[ic1];
-	    	Uv.T_et[ic] =  Uv.T_et[ic1];
-			if(config1.gasModel != 0)
-				for(ns=0; ns<config1.nspec; ns++)
-					Uv.qs_et[ic][ns] = Uv.qs_et[ic1][ns];
-    		ii -= 1;
-    	}
-
-    	// right side, solid wall
-    	ii = ir -1;
-    	for(i=ir; i<I0; i++)
-    	{
-			ic = i*J0 + j;
-	    	ic1 = ii*J0 + j;
-	    	Uv.u_et[ic] = -Uv.u_et[ic1];
-	    	Uv.v_et[ic] = -Uv.v_et[ic1];
-	    	Uv.T_et[ic] =  Uv.T_et[ic1];
-			if(config1.gasModel != 0)
-				for(ns=0; ns<config1.nspec; ns++)
-					Uv.qs_et[ic][ns] = Uv.qs_et[ic1][ns];
-    		ii -= 1;
-    	}
-    }
-#endif
+		}
     }
     free(ysjr);
     free(ysjl);

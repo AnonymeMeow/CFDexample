@@ -74,14 +74,10 @@ void initjob()
 		}
 	    config1.x_sh = i; 
 	}
-#ifdef MPI_RUN
 	MPI_Bcast(&config1.x_sh, 1, MPI_INT, 0, MPI_COMM_WORLD);
-#endif
 	// get the position of the diaphragm
     i0 = config1.x_sh/config1.ni; // the integer part
     ir = config1.x_sh%config1.ni; // the remainder part
-
-#ifdef MPI_RUN
 
 	if(MyID < i0)
 		assigncells(0,config1.ni, 0,config1.nj, inc[0].u,inc[0].v,inc[0].t,inc[0].p, inc[0].ys);
@@ -94,12 +90,6 @@ void initjob()
 		assigncells(0,config1.ni, 0,config1.nj, inc[1].u,inc[1].v,inc[1].t,inc[1].p, inc[1].ys);
 
 	MPI_Barrier(MPI_COMM_WORLD);
-#else
-
-	assigncells(i0,ir, 0,config1.nj, inc[0].u,inc[0].v,inc[0].t,inc[0].p, inc[0].ys);
-	assigncells(ir,config1.ni, 0,config1.nj, inc[1].u,inc[1].v,inc[1].t,inc[1].p,inc[1].ys);
-
-#endif
 }
 /*-----------------------------------------------------------
  * Assign initial value to each cells
@@ -189,11 +179,7 @@ void importjob()
 		if(fp == NULL)
 		{
 			printf("%s not found! \n", filename);
-#ifdef MPI_RUN
 			MPI_Abort( MPI_COMM_WORLD, 21);
-#else
-			endjob();
-#endif
 		}
 		printf("reading the field file... \n");
 		fgets(linebuf,sizeof(linebuf),fp);
@@ -247,9 +233,7 @@ void importjob()
 		}
 	}
 
-#ifdef MPI_RUN
 	MPI_Barrier(MPI_COMM_WORLD);
-#endif
 
 	/*----3. Each processor read the solution file----*/
     sprintf(filename, "tcv%d.dat", MyID);
@@ -270,11 +254,7 @@ void importjob()
 			if(fscanf(fp," %lf %lf %lf %lf %lf %lf %lf %lf",&dum, &dum, &rho, &u, &v, &p, &T, &e) != 8)
 			{
 				printf("format error in tcv.dat \n");
-#ifdef MPI_RUN
 				MPI_Abort( MPI_COMM_WORLD, 22);
-#else
-				endjob();
-#endif
 			}
 			if(config1.gasModel != 0)
 			{

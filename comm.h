@@ -18,8 +18,6 @@
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
 #define MAX(a,b) (((a) > (b)) ? (a) : (b))
 
-#define MPI_RUN
-
 int I0, J0, neqv, neqn, nproc, MyID;
 double dxc, dyc;
 
@@ -41,14 +39,12 @@ double LRef, uRef, cvRef, rhoRef, tRef, temRef, preRef,
        rgasRef, muRef, condRef, diffRef, Upsilon;
 
 /*- MPI related -*/
-#ifdef MPI_RUN
 char processor_name[256];
 int dest, ierr, nachbar_rechts, nachbar_links, namelen, NMAXproc;
 struct strct_gcelltype
 {
 	double rho, u, v, e, p, t, mu, kt, ga, qs[6], di[6];
 }mpiSend_ql[mpicell], mpiSend_qr[mpicell], mpiRecv_ql[mpicell], mpiRecv_qr[mpicell];
-#endif
 
 /*- Origin flow variables -*/
 struct strct_U

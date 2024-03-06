@@ -20,7 +20,6 @@ void saveData(int step)
 	double x, y, rho, u, v, p, T, e;
 	FILE *fp;
 
-#ifdef MPI_RUN
 	sprintf(filename, "tcv%d.dat", MyID);
 	fp = fopen(filename, "w");
 
@@ -47,49 +46,6 @@ void saveData(int step)
 			fprintf(fp, "\n");
 		}
 	fclose(fp);
-
-#else
-
-	sprintf(filename, "tcv%d.dat", MyID);
-
-	fp = fopen(filename, "w");
-	fprintf(fp, "Title = \"Flow field\"\n");
-	fprintf(fp, "Variables = x, y, rho, u, v, p, T, e");
-	if(config1.gasModel != 0)
-	{
-		fprintf(fp, ", gama");
-		for(ns=0; ns<config1.nspec; ns++)
-			fprintf(fp, ", %s", specData[ns].spname);
-	}
-
-	fprintf(fp, "\n");
-	fprintf(fp,"ZONE T='1', I= %d, J= %d, f=point \n", config1.ni, config1.nj);
-
-	/*-- tecplot IJ-ordered or finite-element surface data set --*/
-	for(j = 0; j<config1.nj; j++)
-		for(i = 0; i<config1.ni; i++)
-		{
-			ic = i*config1.nj + j;
-			ic1 = (i+config1.Ng)*J0 + j+config1.Ng;
-			rho = U.q[ic][0];
-			u  =  U.q[ic][1];
-			v  =  U.q[ic][2];
-			e  =  U.q[ic][3];
-			p  =  U.pre[ic];
-			T  =  U.tem[ic];
-			x  =  mesh.xi[ic1];
-			y  =  mesh.et[ic1];
-			fprintf(fp, "%lf %lf %lf %lf %lf %lf %lf %lf", x, y, rho, u, v, p, T, e);
-			if(config1.gasModel != 0)
-			{
-				fprintf(fp, " %lf ", U.gam[ic]);
-				for(ns=0; ns<config1.nspec; ns++)
-					fprintf(fp, " %le ", U.qs[ic][ns]);
-			}
-			fprintf(fp, "\n");
-		}
-    fclose(fp);
-#endif
 }
 
 /*---------------------------------------------------

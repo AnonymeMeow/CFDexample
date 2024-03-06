@@ -17,7 +17,6 @@ void boundX()
 	ir = config1.ni + config1.Ng;
 	jr = config1.nj + config1.Ng;
 
-#ifdef MPI_RUN
 	/*---- assign MPI boundary ----*/
 
 	/* left side */
@@ -152,65 +151,6 @@ void boundX()
 			}
 		}
 	}
-#else
-	for(j=config1.Ng; j<jr; j++) // for actual j cells, 3 -> NJ + 2
-	{
-		/* left side, wall*/
-
-		ii = 2*config1.Ng - 1; // 5, 4, 3 ->  0, 1, 2
-		for(i=0; i<config1.Ng; i++)
-		{
-			ic  = i*J0 + j;
-			ic1 = ii*J0 + j;
-
-			Ug.q[ic][0] =  Ug.q[ic1][0];
-			Ug.q[ic][1] = -Ug.q[ic1][1];
-			Ug.q[ic][2] = -Ug.q[ic1][2];
-			Ug.q[ic][3] =  Ug.q[ic1][3];
-			Ug.tem[ic]  =  Ug.tem[ic1];
-			Ug.pre[ic]  =  Ug.pre[ic1];
-
-			Ug.gam[ic]  =  Ug.gam[ic1];
-			Ug.mu[ic]   =  Ug.mu[ic1];
-			Ug.kt[ic]   =  Ug.kt[ic1];
-			Ug.c[ic]    = -1.;
-			if(config1.gasModel != 0)
-				for(ns=0; ns<config1.nspec; ns++)
-				{
-					Ug.qs[ic][ns] = Ug.qs[ic1][ns];
-					Ug.di[ic][ns] = Ug.di[ic1][ns];
-				}
-			ii -= 1;
-		}
-		/* right side, wall*/
-		ii = ir - 1;
-		for(i=ir; i<I0; i++) //N+2, N+1, N ->  N+3,N+4,N+5
-		{
-			ic = i*J0 + j;
-			ic1 = ii*J0 + j;
-
-			Ug.q[ic][0] =  Ug.q[ic1][0];
-			Ug.q[ic][1] = -Ug.q[ic1][1];
-			Ug.q[ic][2] = -Ug.q[ic1][2];
-			Ug.q[ic][3] =  Ug.q[ic1][3];
-			Ug.tem[ic]  =  Ug.tem[ic1];
-			Ug.pre[ic]  =  Ug.pre[ic1];
-
-			Ug.gam[ic]  =  Ug.gam[ic1];
-			Ug.mu[ic]   =  Ug.mu[ic1];
-			Ug.kt[ic]   =  Ug.kt[ic1];
-			Ug.c[ic]    = -1.;
-			if(config1.gasModel != 0)
-				for(ns=0; ns<config1.nspec; ns++)
-				{
-					Ug.qs[ic][ns] = Ug.qs[ic1][ns];
-					Ug.di[ic][ns] = Ug.di[ic1][ns];
-				}
-
-			ii -= 1;
-		}
-	}
-#endif
 }
 
 /*---------------------------------------------------
@@ -283,7 +223,7 @@ void boundY()
 	    	jj -= 1;
 		}
     }
-#elif defined MPI_RUN && defined Plate
+#elif defined Plate
 	if(MyID <= 2)
 	{
 		for(i=config1.Ng; i<ir; i++)
