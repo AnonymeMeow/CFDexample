@@ -35,3 +35,4 @@ function(add_target target_name)
 endfunction()
 
 add_subdirectory(Cavity)
+add_subdirectory(Plate)
