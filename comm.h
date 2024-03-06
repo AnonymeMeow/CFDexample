@@ -91,4 +91,3 @@ struct strct_metric
 double **qo, **qso, **rhs, ***dsdq;
 
 #endif /* COMM_H_ */
-

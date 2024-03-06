@@ -39,7 +39,6 @@ void readjob()
 #endif
 	readic();
 	readmesh();
-			
 }
 
 /*---------------------------------------------------
@@ -186,7 +185,7 @@ void readmesh()
 			    exit(0);
 #endif
 			}
-	 }
+		}
 	fclose(fp);
 	
 	/* After coordinate transformation,
@@ -231,8 +230,8 @@ void readmesh()
 		#else
 					exit(0);
 		#endif
-		    	};
-			};
+		    	}
+			}
 
 	    fclose(fp);
 		fprintf(outId,"\nRead grid data complete!\n");
@@ -397,7 +396,6 @@ void therminit()
 
 				for(nd = 0; nd<nsets; nd++)
 				{
-
 					if(fgets(linebuf,sizeof (linebuf),fp) == NULL){printf("format error in thermal data \n");exit(0);}
 					if( sscanf(linebuf, "%lf %lf", &specData[ns].temrng[nd][0], &specData[ns].temrng[nd][1]) != 2 )
 					{
@@ -629,13 +627,11 @@ void muCollision()
 	fclose(outId);
 }
 
-
 /*----------------------------------------------------------------------
 *     Read the species coefficients directly from reaction expression
 *----------------------------------------------------------------------*/
 void reaction(FILE *fp)
 {
-
 	int nr, ns, i, j, k, ilen, reacsp, ichar, iskip, nchar, schar;
 	double rcoeff, ttvf;
 	char linebuf[80], tempbuf[80], rsp[15];
@@ -672,7 +668,6 @@ void reaction(FILE *fp)
 
 	for(nr=0; nr<config1.nreac; nr++)
 	{
-
 		if(fgets(linebuf,sizeof(linebuf),fp) == NULL){printf("format error in chemical data \n");exit(0);}
 		if(fgets(linebuf,sizeof(linebuf),fp) == NULL){printf("format error in chemical data \n");exit(0);}
 		trim(linebuf);
@@ -718,37 +713,37 @@ void reaction(FILE *fp)
 	        			if(strcmp("M",rsp) == 0)
 	        				reacData[nr].thirdbody = 1;
 	        			break;
-	               }
+					}
 
-				  //next, handle the right of '=', namely, production
+					//next, handle the right of '=', namely, production
 
-	               if( linebuf[j] == '+' || linebuf[j] == ';')
-	               {
-	            	   ichar = j-i;
+					if( linebuf[j] == '+' || linebuf[j] == ';')
+					{
+						ichar = j-i;
 
-	        		   for(k = 0; k<nchar; k++)
-	        				tempbuf[k] = '\0';  // nchar blank space
-	        		   for(k = 0; k<schar; k++)
-	        				rsp[k] =  '\0';  // schar blank space
+						for(k = 0; k<nchar; k++)
+							tempbuf[k] = '\0'; // nchar blank space
+						for(k = 0; k<schar; k++)
+							rsp[k] =  '\0'; // schar blank space
 
-	            	   for (k = 0; k<ichar; k++)
-	            		   tempbuf[k] = linebuf[i+k];
+						for (k = 0; k<ichar; k++)
+							tempbuf[k] = linebuf[i+k];
 
-	            	   iskip = j+1;
-	            	   DBconvert(tempbuf, ichar, rsp, rcoeff);
+						iskip = j+1;
+						DBconvert(tempbuf, ichar, rsp, rcoeff);
 
-	            	   for(ns=0; ns<config1.nspec; ns++)
-	            		   if(strcmp(spname[ns],rsp) == 0)
-	            		   {
-	            			   reacData[nr].npsr[ns]  = reacData[nr].npsr[ns] + rcoeff;
-	            			   break;
-	            		   }
+						for(ns=0; ns<config1.nspec; ns++)
+							if(strcmp(spname[ns],rsp) == 0)
+							{
+								reacData[nr].npsr[ns]  = reacData[nr].npsr[ns] + rcoeff;
+								break;
+							}
 
-	            	   if(linebuf[j] == ';')
-	            		   goto Label;
-	            	   break;	// finish reading a reaction
+						if(linebuf[j] == ';')
+							goto Label;
+						break; // finish reading a reaction
 	                }
-	           }
+	        	}
 	        } //end if(linebuf[i] != ' ')
 		}
 
@@ -836,7 +831,6 @@ Label:  if(fgets(linebuf,sizeof(linebuf),fp) == NULL){printf("format error in ch
 				fprintf(outId, "Equilibrium constant calculated by Gibbs free energy. \n");
 			}
 		}
-
 	}
 	fclose(outId);
 	fclose(fp);
@@ -852,10 +846,10 @@ char *trim(char *str)
     char *endp = NULL;
 
     if( str == NULL )
-            return NULL;
+		return NULL;
 
     if( str[0] == '\0' )
-            return str;
+		return str;
 
     len = strlen(str);
     endp = str + len;
@@ -868,9 +862,9 @@ char *trim(char *str)
     while( isspace(*(--endp)) && endp != frontp );
 
     if( str + len - 1 != endp )
-            *(endp + 1) = '\0';
+		*(endp + 1) = '\0';
     else if( frontp != str &&  endp == frontp )
-            *str = '\0';
+		*str = '\0';
 
     endp = str;
     if( frontp != str )
@@ -878,7 +872,6 @@ char *trim(char *str)
     	while( *frontp ) *endp++ = *frontp++;
         *endp = '\0';
     }
-
 
     return str;
 }
@@ -890,68 +883,67 @@ char *trim(char *str)
 * output: temp-> N2 ; coef-> 2.5
 *----------------------------------------------------------------------*/
 void DBconvert(char *str, int ilen, char *temp, double coef)
- {
+{
+	int i, idec, ireal , ichar, iplace;
+	double fact;
+	char isupper[27], isdigit[10];
+	char *k;
 
-      int i, idec, ireal , ichar, iplace;
-      double fact;
-      char isupper[27], isdigit[10];
-      char *k;
+	char *trim(char *str);
 
-      char *trim(char *str);
+	strcpy(isupper, "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+	strcpy(isdigit, "123456789");
 
-      strcpy(isupper, "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
-      strcpy(isdigit, "123456789");
+	coef  = 1.0;
+	idec =  0;
+	ireal = 0;
+	ichar = 0;
 
-      coef  = 1.0;
-      idec =  0;
-      ireal = 0;
-      ichar = 0;
+	for(i = 0; i<ilen; i++)
+	{
+		if((str[i]>='A') &&(str[i]<='Z')) break;
+		ichar ++; // the position of the species name
 
- 	  for(i = 0; i<ilen; i++)
- 	  {
- 		  if((str[i]>='A') &&(str[i]<='Z')) break;
- 	      ichar ++; // the position of the species name
+		if(str[i] == '.' )
+		{
+			idec  = i;
+			continue;
+		}
 
-          if(str[i] == '.' )
-          {
-            idec  = i;
-            continue;
-          }
+		ireal ++;
+		if(str[i] == ' ' ) ireal = i - 1;
+	}
 
-          ireal ++;
-          if(str[i] == ' ' ) ireal = i - 1;
- 	  }
+	if( idec == 0 ) idec = ireal+1;
 
- 	  if( idec == 0 ) idec = ireal+1;
+	fact   = 0.;
+	for(i = 0; i<=idec-1; i++)
+	{
+		k = strchr(isupper, str[i]);
+		iplace = idec - (i+1);
+		fact   = fact + (double)(k[0])*pow(10,iplace);
+	}
 
- 	  fact   = 0.;
- 	  for(i = 0; i<=idec-1; i++)
- 	  {
- 		  k = strchr(isupper, str[i]);
- 	      iplace = idec - (i+1);
- 	      fact   = fact + (double)(k[0])*pow(10,iplace);
- 	  }
+	iplace = 0;
+	for(i = idec+1; i<=ireal; i++)
+	{
+		k = strchr(isdigit, str[i] );
+		iplace = iplace + 1;
+		fact   = fact + (double)(k[0])*pow(0.1,iplace);
+	}
 
- 	  iplace = 0;
- 	  for(i = idec+1; i<=ireal; i++)
- 	  {
- 		 k = strchr(isdigit, str[i] );
- 	     iplace = iplace + 1;
- 	     fact   = fact + (double)(k[0])*pow(0.1,iplace);
- 	  }
+	if(fact > 0)
+		coef = fact;
+	else
+		printf("[DBconvert] species coefficient error!");
 
- 	  if(fact > 0)
- 		  coef = fact;
- 	  else
- 		 printf("[DBconvert] species coefficient error!");
+	for( i = ichar; i<ilen; i++)
+	{
+		iplace = i-ichar;
+		temp[iplace] = str[i];
+	}
 
-      for( i = ichar; i<ilen; i++)
-      {
-        iplace = i-ichar;
-        temp[iplace] = str[i];
-      }
-
-      temp = trim(temp);
+	temp = trim(temp);
 }
 
 #ifdef MPI_RUN
@@ -970,7 +962,6 @@ void BcastData()
 	count2 = sizeof(config2)/sizeof(double);
 	MPI_Bcast(&config1, count1, MPI_INT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(&config2, count2, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-
 
 	/*-----------Broadcast thermo-chemical data-----------*/
 
@@ -997,7 +988,6 @@ void BcastData()
 
 	MPI_Bcast(reacData, maxreac, reacDatatype, 0, MPI_COMM_WORLD);
 	MPI_Bcast(specData, maxspec, specDatatype, 0, MPI_COMM_WORLD);
-
 }
 
 #endif

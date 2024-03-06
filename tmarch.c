@@ -216,7 +216,6 @@ void updateqs(int nc, double **q, double **qs, double **rhs, double dt, int idt)
 
 		free(dmat1);
 	}
-
 }
 
 /*---------------------------------------------------

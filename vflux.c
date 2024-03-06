@@ -703,7 +703,6 @@ void interpoDY()
 			if(config1.gasModel != 0)
 				for(ns=0; ns<config1.nspec; ns++)
 					Uv.qs_et[ic][ns] = (ysjr[ns] - ysjl[ns])/dyc;
-
     }
     	/* 3. assign boundary condition in direction i */
 #ifdef MPI_RUN
@@ -965,4 +964,3 @@ void freevFlux(int nlen, struct strct_flux *f)
 	free(f->qs);
 	free(f->flux);
 }
-
