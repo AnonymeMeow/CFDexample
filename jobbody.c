@@ -73,7 +73,7 @@ void jobbody()
 		if(MyID == 0)
 		{
 			sum_t = sum_t + dtc;
-			if(iStep%1000 == 0)
+			if(iStep%100 == 0)
 			{
 				// run on the cluster platform, output all the information to a file.
 				outId = fopen("outInfo.dat", "a");

@@ -1,0 +1,16 @@
+*
+*              Blottner viscosity DATABASE
+*
+*   format:
+*
+*     Species name (A15); coefficients (3E9.2)
+*
+*  Data taken from
+*  F.G.Blottner, M.Johnson and M.Ellis, SC-RR-70-754, Sandia laboratories, 1971
+*
+N2              2.68E-02   3.18E-01  -1.13E+01
+O2	        4.49E-02  -8.26E-02  -9.20E+00
+NO	        4.36E-02  -3.36E-02  -9.58E+00
+N	        1.16E-02   6.03E-01  -1.24E+01	
+O	        2.03E-02   4.29E-01  -1.16E+01
+

@@ -1,0 +1,55 @@
+1.460953e-04 0.5 
+
+1  1  0
+1  3000  10  1000  1000
+6.86e-4 6.86e-4  0.2 0.2
+
+0  1  1  2
+28.97e-3 1.4 0.73 0.5 0.
+1.716e-5 273.15 110.4
+1. 800. 1.013e5
+
+120   1. 0. 0.
+1.2   1. 0. 0.
+
+*----------------------------------------------------------------------*/
+Data format:
+
+[physicalProblem]
+t0 x0 Lx Ly
+
+[Numerics]
+newrun nonDi useDt
+iStep0 nStep nRamp Samples ifilm
+dt0 dt1 CFL0 CFL1 
+
+[FluidProperties]
+gasModel reacModel visModel transModel
+molWeight gam0 Pr0 Sc0 
+muRef condRef diffRef 
+MaRef temRef pRef
+
+[initial condition]
+P_1 T_1 u_1 v_1
+P_2 T_2 u_2 v_2
+
+*----------------------------------------------------------------------*/
+Notes:
+
+1. "t0", "x0", "Lx", "Ly"  represent the initial time of simulation, initial position of the shock, domain length in x, length in y direction.
+
+2. "newrun", "nonDi", "useDt" are the variables for the options: whether start a new simulation, whether is non-dimension (otherwise with dimension), whether use constant time step(otherwise use CFL); A non-zero integer for these variables means logical condition "true", while "0" means false.
+
+3. "iStep0", "nStep", "nRamp", "Samples" represent the initial time step of simulation, total time step of simulation, time steps for the program march from CFL0 to CFL1(or dt0 to dt1), intervals for the program to output results.
+
+4. "dt0", "dt1", "CFL0", "CFL1" represent the minimum time step, the maximum time step, the minimum CFL number, the maximum CFL number.
+
+5. "gasModel", "visModel", "reacModel" are the logical options: whether real-gas flow (or perfect gas flow) ,  whether viscous flow, whether have chemical reaction . A non-zero integer for these variables means logical condition "true", while "0" means false.
+    As for "visModel", 1 represent constant viscous and heat conduct coefficient, 2 represent calculate the viscous coefficient by Sutherland's law. 2 represent calculate the viscous coefficient by Blonner's Curve fit data.
+
+6. "muRef", "suthC1", "suthC2" are the constants for Sutherland's law.
+
+7. “MaRef” is reference Mach number, which only used for the non-dimension of velocity and have no relation to the actual Mach number."temRef" and "prefRef" are reference temperature and density which only used for non-perfect gas to recover the dimension, while for perfect gas flow not used. If the non-perfect flow is calculated with dimension("nonDi" option equals 0), then "temRef" "rhoRef" are also not used. 
+
+*----------------------------------------------------------------------*/
+ 
