@@ -285,7 +285,7 @@ double getes(int ns, double t)
 	else
 	{
 		printf("[getes] unsupported gasModel\n");
-			MPI_Abort( MPI_COMM_WORLD, 43);
+		MPI_Abort( MPI_COMM_WORLD, 43);
 	}
 
 	return(es);
@@ -611,7 +611,6 @@ void chemsource(int nc, double **q, double **qs, double *tem, double **rhs)
            Trigger_T, kfterm, kbterm, termU, termV, termE, zt, z2, alfa, yas,
            kf, kb, keq, gibbs[2];
     double rhos[maxspec], term[maxspec], rwm[maxspec], dkfdq[maxeqn], dkbdq[maxeqn];
-	double  **sour, **dtdq;
     double dimen_factor[9] = {1.e6, 1.e6, 1.e6, 1.e6, 1.e6, 1.e6, 1.e6, 1., 1.};
 
 	void gibbsenergy(int nr, int nc, double t, double f[]);
@@ -622,14 +621,6 @@ void chemsource(int nc, double **q, double **qs, double *tem, double **rhs)
 
 	// the lowest temperature to trigger the reaction.
 	Trigger_T = 1800.;
-
-	sour = (double**)get_buffered_memory(sizeof(double*)*nc);
-	dtdq = (double**)get_buffered_memory(sizeof(double*)*nc);
-	for(ic=0; ic<nc; ic++)
-	{
-		sour[ic] = (double*)get_buffered_memory(sizeof(double)*m);
-		dtdq[ic] = (double*)get_buffered_memory(sizeof(double)*neqn);
-	}
 
     alfa = LRef/(rhoRef*uRef);
 
@@ -864,16 +855,6 @@ void chemsource(int nc, double **q, double **qs, double *tem, double **rhs)
 				rhs[ic][ns] = rhs[ic][ns] + sour[ic][ns]*yas;
 		}
 	}
-
-    /*----- 7. Free the array memory -----*/
-
-    for(ic=nc-1; ic>=0; ic--)
-    {
-    	free_buffered_memory(dtdq[ic]);
-    	free_buffered_memory(sour[ic]);
-    }
-	free_buffered_memory(dtdq);
-	free_buffered_memory(sour);
 }
 
 /*--------------------------------------------------------------

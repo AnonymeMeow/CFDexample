@@ -23,11 +23,8 @@ void vfluxF(double **rhs)
 	double interpo[6]={1./60., -2./15., 37./60., 37./60., -2./15., 1./60.};
 	double approxi[6]={-1./90., 25./180., -245./180., 245./180., -25./180., 1./90.};
 
-	void allocatevFlux(int nlen, struct strct_flux *f);
-	void freevFlux(int nlen, struct strct_flux *f);
 	void interpoDY();
 
-	allocatevFlux(I0,&U1d);
 	interpoDY();
 
     idr  = 0;
@@ -137,8 +134,6 @@ void vfluxF(double **rhs)
 				rhs[ic][k] = rhs[ic][k] + (U1d.flux[i][k] - U1d.flux[i-1][k])/dxc;
 		}
 	}
-
-	freevFlux(I0, &U1d);
 }
 
 
@@ -153,11 +148,8 @@ void vfluxG(double **rhs)
 	double interpo[6]={1./60., -2./15., 37./60., 37./60., -2./15., 1./60.};
 	double approxi[6]={-1./90., 25./180., -245./180., 245./180., -25./180., 1./90.};
 
-	void allocatevFlux(int nlen, struct strct_flux *f);
-	void freevFlux(int nlen, struct strct_flux *f);
 	void interpoDX();
 
-	allocatevFlux(J0,&U1d);
 	interpoDX();
 
     idr  = 0;
@@ -266,8 +258,6 @@ void vfluxG(double **rhs)
 				rhs[ic][k] = rhs[ic][k] + (U1d.flux[j][k] - U1d.flux[j-1][k])/dyc;
 		}
 	}
-
-	freevFlux(J0, &U1d);
 }
 
 /*--------------------------------------------------------------
@@ -283,11 +273,7 @@ void vfluxchemF(double **rhs)
 	double approxi[6]={-1./90., 25./180., -245./180., 245./180., -25./180., 1./90.};
 
 	void interpoDY();
-	void allocatevFlux(int nlen, struct strct_flux *f);
-	void freevFlux(int nlen, struct strct_flux *f);
 	double getes(int ns, double t);
-
-	allocatevFlux(I0,&U1d);
 
 	interpoDY();
 
@@ -439,8 +425,6 @@ void vfluxchemF(double **rhs)
 				rhs[ic][k] = rhs[ic][k] + (U1d.flux[i][k] - U1d.flux[i-1][k])/dxc;
 		}
 	}
-
-	freevFlux(I0, &U1d);
 }
 
 
@@ -457,11 +441,8 @@ void vfluxchemG(double **rhs)
 	double approxi[6]={-1./90., 25./180., -245./180., 245./180., -25./180., 1./90.};
 
 	void interpoDX();
-	void allocatevFlux(int nlen, struct strct_flux *f);
-	void freevFlux(int nlen, struct strct_flux *f);
 	double getes(int ns, double t);
 
-	allocatevFlux(J0,&U1d);
 	interpoDX();
 
     idr  = 0;
@@ -613,8 +594,6 @@ void vfluxchemG(double **rhs)
 				rhs[ic][k] = rhs[ic][k] + (U1d.flux[j][k] - U1d.flux[j-1][k])/dyc;
 		}
 	}
-
-	freevFlux(J0, &U1d);
 }
 
 /*---------------------------------------------------
@@ -647,28 +626,26 @@ void interpoDY()
     			ysjl[ns] = 0.;
     		}
 
-    			// 3. other region
-    			for(k=0; k<6; k++)
-    			{
-    				jj = j - config1.Ng + k;
-    				icp = i*J0 + jj+1;
-    				icm = i*J0 + jj;
+			// 3. other region
+			for(k=0; k<6; k++)
+			{
+				jj = j - config1.Ng + k;
+				icp = i*J0 + jj+1;
+				icm = i*J0 + jj;
 
-    				ujr = ujr + interpo[k]*Ug.q[icp][1];
-    				vjr = vjr + interpo[k]*Ug.q[icp][2];
-    				tjr = tjr + interpo[k]*Ug.tem[icp];
-    				ujl = ujl + interpo[k]*Ug.q[icm][1];
-    				vjl = vjl + interpo[k]*Ug.q[icm][2];
-    				tjl = tjl + interpo[k]*Ug.tem[icm];
-    				if(config1.gasModel != 0)
-    					for(ns=0; ns<config1.nspec; ns++)
-    					{
-    						ysjr[ns] = ysjr[ns] + interpo[k]*Ug.qs[icp][ns];
-    	    				ysjl[ns] = ysjl[ns] + interpo[k]*Ug.qs[icm][ns];
-    					}
-    			}
-    	}
-
+				ujr = ujr + interpo[k]*Ug.q[icp][1];
+				vjr = vjr + interpo[k]*Ug.q[icp][2];
+				tjr = tjr + interpo[k]*Ug.tem[icp];
+				ujl = ujl + interpo[k]*Ug.q[icm][1];
+				vjl = vjl + interpo[k]*Ug.q[icm][2];
+				tjl = tjl + interpo[k]*Ug.tem[icm];
+				if(config1.gasModel != 0)
+					for(ns=0; ns<config1.nspec; ns++)
+					{
+						ysjr[ns] = ysjr[ns] + interpo[k]*Ug.qs[icp][ns];
+						ysjl[ns] = ysjl[ns] + interpo[k]*Ug.qs[icm][ns];
+					}
+			}
     		/* 2. get the derivative on (i,j) cells */
     		Uv.u_et[ic] = (ujr - ujl)/dyc;
     		Uv.v_et[ic] = (vjr - vjl)/dyc;
@@ -676,6 +653,7 @@ void interpoDY()
 			if(config1.gasModel != 0)
 				for(ns=0; ns<config1.nspec; ns++)
 					Uv.qs_et[ic][ns] = (ysjr[ns] - ysjl[ns])/dyc;
+    	}
     }
 
 	/* 3. assign boundary condition in direction i */
@@ -804,92 +782,33 @@ void interpoDX()
     			ysil[ns] = 0.;
     		}
 
-    			// 3. other region
-    			for(k=0; k<6; k++)
-    			{
-    				ii = i - 3 + k;
-    				icp = (ii+1)*J0 + j;
-    				icm = ii*J0 + j;
+			// 3. other region
+			for(k=0; k<6; k++)
+			{
+				ii = i - 3 + k;
+				icp = (ii+1)*J0 + j;
+				icm = ii*J0 + j;
 
-    				uir = uir + interpo[k]*Ug.q[icp][1];
-    				vir = vir + interpo[k]*Ug.q[icp][2];
-    				tir = tir + interpo[k]*Ug.tem[icp];
-    				uil = uil + interpo[k]*Ug.q[icm][1];
-    				vil = vil + interpo[k]*Ug.q[icm][2];
-    				til = til + interpo[k]*Ug.tem[icm];
-    				if(config1.gasModel != 0)
-    					for(ns=0; ns<config1.nspec; ns++)
-    					{
-    						ysir[ns] = ysir[ns] + interpo[k]*Ug.qs[icp][ns];
-    						ysil[ns] = ysil[ns] + interpo[k]*Ug.qs[icm][ns];
-    					}
-    			}
+				uir = uir + interpo[k]*Ug.q[icp][1];
+				vir = vir + interpo[k]*Ug.q[icp][2];
+				tir = tir + interpo[k]*Ug.tem[icp];
+				uil = uil + interpo[k]*Ug.q[icm][1];
+				vil = vil + interpo[k]*Ug.q[icm][2];
+				til = til + interpo[k]*Ug.tem[icm];
+				if(config1.gasModel != 0)
+					for(ns=0; ns<config1.nspec; ns++)
+					{
+						ysir[ns] = ysir[ns] + interpo[k]*Ug.qs[icp][ns];
+						ysil[ns] = ysil[ns] + interpo[k]*Ug.qs[icm][ns];
+					}
+			}
+			/* 2. get the derivative on (i,j) cells */
+			Uv.u_xi[ic] = (uir - uil)/dxc;
+			Uv.v_xi[ic] = (vir - vil)/dxc;
+			Uv.T_xi[ic] = (tir - til)/dxc;
+			if(config1.gasModel != 0)
+				for(ns=0; ns<config1.nspec; ns++)
+					Uv.qs_xi[ic][ns] = (ysir[ns] - ysil[ns])/dxc;
     	}
-		/* 2. get the derivative on (i,j) cells */
-		Uv.u_xi[ic] = (uir - uil)/dxc;
-		Uv.v_xi[ic] = (vir - vil)/dxc;
-		Uv.T_xi[ic] = (tir - til)/dxc;
-		if(config1.gasModel != 0)
-			for(ns=0; ns<config1.nspec; ns++)
-				Uv.qs_xi[ic][ns] = (ysir[ns] - ysil[ns])/dxc;
 	}
-}
-
-/*---------------------------------------------------
- * allocate memory for calculation inviscid flux
- * ------------------------------------------------*/
-void allocatevFlux(int nlen, struct strct_flux *f)
-{
-	int i;
-
-	f->du = (double*)get_buffered_memory(sizeof(double)*nlen);
-	f->dv = (double*)get_buffered_memory(sizeof(double)*nlen);
-	f->dt = (double*)get_buffered_memory(sizeof(double)*nlen);
-	f->rho= (double*)get_buffered_memory(sizeof(double)*nlen);
-	f->u  = (double*)get_buffered_memory(sizeof(double)*nlen);
-	f->v  = (double*)get_buffered_memory(sizeof(double)*nlen);
-	f->p  = (double*)get_buffered_memory(sizeof(double)*nlen);
-	f->t  = (double*)get_buffered_memory(sizeof(double)*nlen);
-	f->mu = (double*)get_buffered_memory(sizeof(double)*nlen);
-	f->kt = (double*)get_buffered_memory(sizeof(double)*nlen);
-	f->qs = (double**)get_buffered_memory(sizeof(double*)*nlen);
-	f->dqs = (double**)get_buffered_memory(sizeof(double*)*nlen);
-	f->Ds = (double**)get_buffered_memory(sizeof(double*)*nlen);
-	f->flux = (double**)get_buffered_memory(sizeof(double*)*nlen);
-	for(i=0; i<nlen; i++)
-	{
-		f->qs[i]  = (double*)get_buffered_memory(sizeof(double)*config1.nspec);
-		f->Ds[i]  = (double*)get_buffered_memory(sizeof(double)*config1.nspec);
-		f->dqs[i] = (double*)get_buffered_memory(sizeof(double)*config1.nspec);
-		f->flux[i]  = (double*)get_buffered_memory(sizeof(double)*neqn);
-	}
-}
-/*---------------------------------------------------
- * free the memory
- * ------------------------------------------------*/
-void freevFlux(int nlen, struct strct_flux *f)
-{
-	int i;
-
-	for(i=nlen-1; i>=0; i--)
-	{
-		free_buffered_memory(f->flux[i]);
-		free_buffered_memory(f->dqs[i]);
-		free_buffered_memory(f->Ds[i]);
-		free_buffered_memory(f->qs[i]);
-	}
-	free_buffered_memory(f->flux);
-	free_buffered_memory(f->Ds);
-	free_buffered_memory(f->dqs);
-	free_buffered_memory(f->qs);
-	free_buffered_memory(f->kt);
-	free_buffered_memory(f->mu);
-	free_buffered_memory(f->t);
-	free_buffered_memory(f->p);
-	free_buffered_memory(f->v);
-	free_buffered_memory(f->u);
-	free_buffered_memory(f->rho);
-	free_buffered_memory(f->dt);
-	free_buffered_memory(f->dv);
-	free_buffered_memory(f->du);
 }

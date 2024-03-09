@@ -61,7 +61,7 @@ void updateqs(int nc, double **q, double **qs, double **rhs, double dt, int idt)
 {
 	int ic, ic1, i, ii, j, jj, ki, kj, ns, m, dim;
 	double rrho, sumqs, rhoU, rhoV, rhoE, yas;
-	double rhos[99], B[maxeqn], X[maxeqn], dU[maxeqn], **dmat1;
+	double rhos[99], B[maxeqn], X[maxeqn], dU[maxeqn];
 	void gauss(double **a, double *b, double *x, int n);
 	int  matrix_print_off(int nr, int nc, double **A);
 	double coef[3][3] = {{1., 3./4., 1./3.}, {0, 1./4., 2./3.},
@@ -120,10 +120,6 @@ void updateqs(int nc, double **q, double **qs, double **rhs, double dt, int idt)
 	}
 	else
 	{
-		dmat1 = (double**)get_buffered_memory(sizeof(double*)*dim);
-		for(i=0; i<dim; i++)
-			dmat1[i] = (double*)get_buffered_memory(sizeof(double)*dim);
-
 		/*--------1. initialize the Jacobian matrix --------*/
 		for(i=0; i<dim; i++)
 			for(j=0; j<dim; j++)
@@ -209,12 +205,6 @@ void updateqs(int nc, double **q, double **qs, double **rhs, double dt, int idt)
 				q[ic][3] = q[ic][3]*rrho;
 			}
 		}
-
-		/*--------5. free memory --------*/
-		for(i=dim-1; i>=0; i--)
-			free_buffered_memory(dmat1[i]);
-
-		free_buffered_memory(dmat1);
 	}
 }
 

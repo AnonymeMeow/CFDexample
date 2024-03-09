@@ -9,8 +9,6 @@
 #include"comm.h"
 #include"chemdata.h"
 
-#define MEMORY_BUFFER_FACTOR 20
-
 /*---------------------------------------------------
  * set and initialize the job
  * ------------------------------------------------*/
@@ -25,6 +23,7 @@ void setjob()
 
 	void allocateU(int nlen, struct strct_U *U);
 	void allocateUv();
+	void allocateU1d(int);
 	void allocateOthers();
 
 	if(config1.gasModel == 0)
@@ -38,6 +37,7 @@ void setjob()
 	allocateU(nc, &U);
 	allocateU(nc1, &Ug);
 	allocateUv();
+	allocateU1d(MAX(I0, J0));
 	allocateOthers();
 
 	nondimen();
@@ -48,8 +48,6 @@ void setjob()
 		importjob();
 
 	setGeom();
-	memory_buffer.top = memory_buffer.buffer = (char*)malloc(sizeof(double)*nc1*MEMORY_BUFFER_FACTOR);
-	memory_buffer.bottom = NULL;
 }
 
 /*---------------------------------------------------
@@ -609,6 +607,38 @@ void allocateUv()
 	}
 }
 
+void allocateU1d(int nlen)
+{
+	U1d.xix = (double*)malloc(sizeof(double)*nlen);
+	U1d.xiy = (double*)malloc(sizeof(double)*nlen);
+	U1d.etx = (double*)malloc(sizeof(double)*nlen);
+	U1d.ety = (double*)malloc(sizeof(double)*nlen);
+	U1d.yas = (double*)malloc(sizeof(double)*nlen);
+	U1d.rho = (double*)malloc(sizeof(double)*nlen);
+	U1d.du = (double*)malloc(sizeof(double)*nlen);
+	U1d.dv = (double*)malloc(sizeof(double)*nlen);
+	U1d.dt = (double*)malloc(sizeof(double)*nlen);
+	U1d.dqs = (double**)malloc(sizeof(double*)*nlen);
+	U1d.u = (double*)malloc(sizeof(double)*nlen);
+	U1d.v = (double*)malloc(sizeof(double)*nlen);
+	U1d.p = (double*)malloc(sizeof(double)*nlen);
+	U1d.e = (double*)malloc(sizeof(double)*nlen);
+	U1d.t = (double*)malloc(sizeof(double)*nlen);
+	U1d.gam = (double*)malloc(sizeof(double)*nlen);
+	U1d.mu = (double*)malloc(sizeof(double)*nlen);
+	U1d.kt = (double*)malloc(sizeof(double)*nlen);
+	U1d.Ds = (double**)malloc(sizeof(double*)*nlen);
+	U1d.qs = (double**)malloc(sizeof(double*)*nlen);
+	U1d.flux = (double**)malloc(sizeof(double*)*nlen);
+	for (int i = 0; i < nlen; i++)
+	{
+		U1d.dqs[i] = (double*)malloc(sizeof(double)*config1.nspec);
+		U1d.Ds[i] = (double*)malloc(sizeof(double)*config1.nspec);
+		U1d.qs[i] = (double*)malloc(sizeof(double)*config1.nspec);
+		U1d.flux[i] = (double*)malloc(sizeof(double)*neqn);
+	}
+}
+
 /*---------------------------------------------------
  * allocate memory for other variables
  * ------------------------------------------------*/
@@ -642,20 +672,17 @@ void allocateOthers()
 				dsdq[ic][ns] = (double*)malloc(sizeof(double)*neqn);
 		}
 	}
-}
 
-void* get_buffered_memory(size_t size)
-{
-	*(char**)memory_buffer.top = memory_buffer.bottom;
-	memory_buffer.bottom = memory_buffer.top;
-	memory_buffer.top += sizeof(char*) + size;
-	return (void*)((char**)memory_buffer.bottom + 1);
-}
-
-void free_buffered_memory(void* ptr)
-{
-	if ((char*)ptr - memory_buffer.bottom != sizeof(char*))
-		exit(-1);
-	memory_buffer.top = memory_buffer.bottom;
-	memory_buffer.bottom = *(char**)memory_buffer.bottom;
+	int dim = neqv - 1 + config1.nspec;
+	dmat1 = (double**)malloc(sizeof(double*)*dim);
+	for (int i = 0; i < dim; i++)
+		dmat1[i] = (double*)malloc(sizeof(double)*dim);
+	
+	sour = (double**)malloc(sizeof(double*)*nc);
+	dtdq = (double**)malloc(sizeof(double*)*nc);
+	for (int i = 0; i < nc; i++)
+	{
+		sour[i] = (double*)malloc(sizeof(double)*config1.nspec);
+		dtdq[i] = (double*)malloc(sizeof(double)*neqn);
+	}
 }

@@ -86,15 +86,6 @@ struct strct_metric
 /*- others -*/
 double **qo, **qso, **rhs, ***dsdq;
 
-struct MemoryBufferStack
-{
-	char* buffer;
-	char* bottom;
-	char* top;
-} memory_buffer;
-
-void* get_buffered_memory(size_t size);
-
-void free_buffered_memory(void* ptr);
+double **dmat1, **sour, **dtdq;
 
 #endif /* COMM_H_ */

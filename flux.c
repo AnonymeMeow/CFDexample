@@ -69,8 +69,6 @@ void fluxF(double **rhs)
 
 	void boundX();
 	double phin(double fa, double fb, double fc, double fd);
-	void allocateFlux(int nlen, struct strct_flux *f);
-	void freeFlux(int nlen, struct strct_flux *f);
 	void getEigenvector(double qave[], double p, double t, double ga, double kx, 
 		                double ky, double (*le)[maxeqn], double (*re)[maxeqn]);
 
@@ -79,8 +77,6 @@ void fluxF(double **rhs)
 	jr = config1.nj + config1.Ng;
 
     boundX();
-
-    allocateFlux(I0, &U1d);
 
 	for(j=config1.Ng; j<jr; j++)
 	{
@@ -211,7 +207,6 @@ void fluxF(double **rhs)
 				rhs[ic][iv] = - (U1d.flux[i][iv] - U1d.flux[i-1][iv])/dxc;
 		}
 	}
-	freeFlux(I0, &U1d);
 }
 
 
@@ -231,8 +226,6 @@ void fluxG(double **rhs)
 
 	double phin(double fa, double fb, double fc, double fd);
 	void boundY();
-	void allocateFlux(int nlen, struct strct_flux *f);
-	void freeFlux(int nlen, struct strct_flux *f);
 	void getEigenvector(double qave[], double p, double t, double ga, double kx, 
 		                double ky, double (*le)[maxeqn], double (*re)[maxeqn]);
 
@@ -242,8 +235,6 @@ void fluxG(double **rhs)
 	jl = config1.Ng - 1;
 
 	boundY();
-
-	allocateFlux(J0,&U1d);
 
 	for(i=config1.Ng; i<ir; i++)
 	{
@@ -367,7 +358,6 @@ void fluxG(double **rhs)
 			// the rhs at j=config1.Ng is actually not used
 		}
 	}
-	freeFlux(J0, &U1d);
 }
 
 /*---------------------------------------------------
@@ -384,8 +374,6 @@ void fluxchemF(double **rhs)
 	double lf[6] = {0., -1./12., 7./12., 7./12., -1./12., 0.};
 
 	void boundX();
-	void allocateFlux(int nlen, struct strct_flux *f);
-	void freeFlux(int nlen, struct strct_flux *f);
 	double phin(double fa, double fb, double fc, double fd);
 	void getEigenvectorChem(double qave[], double qsave[], double p, double t, double ga, 
 		                    double kx, double ky, double (*le)[maxeqn], double (*re)[maxeqn]);
@@ -397,7 +385,6 @@ void fluxchemF(double **rhs)
     boundX();
 
     m = config1.nspec;
-    allocateFlux(I0, &U1d);
 
 	for(j=config1.Ng; j<jr; j++)
 	{
@@ -580,7 +567,6 @@ void fluxchemF(double **rhs)
 				rhs[ic][iv] = - (U1d.flux[i][iv] - U1d.flux[i-1][iv])/dxc;
 		}
 	}
-	freeFlux(I0, &U1d);
 }
 
 
@@ -599,8 +585,6 @@ void fluxchemG(double **rhs)
 
 	void boundY();
 	double phin(double fa, double fb, double fc, double fd);
-	void allocateFlux(int nlen, struct strct_flux *f);
-	void freeFlux(int nlen, struct strct_flux *f);
 	void getEigenvectorChem(double qave[], double qsave[], double p, double t, double ga, 
 		                    double kx, double ky, double (*le)[maxeqn], double (*re)[maxeqn]);
 
@@ -610,7 +594,6 @@ void fluxchemG(double **rhs)
 	boundY();
 
 	m = config1.nspec;
-	allocateFlux(J0,&U1d);
 
 	for(i=config1.Ng; i<ir; i++)
 	{
@@ -741,7 +724,6 @@ void fluxchemG(double **rhs)
 				rhs[ic][iv] = rhs[ic][iv] -(U1d.flux[j][iv] - U1d.flux[j-1][iv])/dyc;
 		}
 	}
-	freeFlux(J0, &U1d);
 }
 
 /*---------------------------------------------------
@@ -970,61 +952,4 @@ void getEigenvectorChem(double q[], double qsin[], double p, double t, double ga
     rightEigenvector[m+2][m]   =  u*k1y - v*k1x;
     rightEigenvector[m+2][m+1] =  0.5*(H + c*te1)*rc2;
     rightEigenvector[m+2][m+2] =  0.5*(H - c*te1)*rc2;
-}
-
-/*---------------------------------------------------
- * allocate memory for calculation inviscid flux
- * ------------------------------------------------*/
-void allocateFlux(int nlen, struct strct_flux *f)
-{
-	int i;
-
-	f->xix  = (double*)get_buffered_memory(sizeof(double)*nlen);
-	f->xiy  = (double*)get_buffered_memory(sizeof(double)*nlen);
-	f->etx  = (double*)get_buffered_memory(sizeof(double)*nlen);
-	f->ety  = (double*)get_buffered_memory(sizeof(double)*nlen);
-	f->yas  = (double*)get_buffered_memory(sizeof(double)*nlen);
-	f->rho  = (double*)get_buffered_memory(sizeof(double)*nlen);
-	f->u    = (double*)get_buffered_memory(sizeof(double)*nlen);
-	f->v    = (double*)get_buffered_memory(sizeof(double)*nlen);
-	f->e    = (double*)get_buffered_memory(sizeof(double)*nlen);
-	f->p    = (double*)get_buffered_memory(sizeof(double)*nlen);
-	f->t    = (double*)get_buffered_memory(sizeof(double)*nlen);
-	f->gam  = (double*)get_buffered_memory(sizeof(double)*nlen);
-	f->qs   = (double**)get_buffered_memory(sizeof(double*)*nlen);
-	f->flux = (double**)get_buffered_memory(sizeof(double*)*nlen);
-	for(i=0; i<nlen; i++)
-	{
-		f->qs[i]     = (double*)get_buffered_memory(sizeof(double)*config1.nspec);
-		f->flux[i]   = (double*)get_buffered_memory(sizeof(double)*neqn);
-	}
-}
-/*---------------------------------------------------
- * free the memory
- * ------------------------------------------------*/
-void freeFlux(int nlen, struct strct_flux *f)
-{
-	int i;
-
-	for(i=nlen-1; i>=0; i--)
-	{
-		free_buffered_memory(f->flux[i]);
-		free_buffered_memory(f->qs[i]);
-	}
-	free_buffered_memory(f->flux);
-	free_buffered_memory(f->qs);
-
-	free_buffered_memory(f->gam);
-
-	free_buffered_memory(f->t);
-	free_buffered_memory(f->p);
-	free_buffered_memory(f->e);
-	free_buffered_memory(f->v);
-	free_buffered_memory(f->u);
-	free_buffered_memory(f->rho);
-	free_buffered_memory(f->yas);
-	free_buffered_memory(f->ety);
-	free_buffered_memory(f->etx);
-	free_buffered_memory(f->xiy);
-	free_buffered_memory(f->xix);
 }

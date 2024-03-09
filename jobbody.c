@@ -34,7 +34,10 @@ void jobbody()
 
 	mpiConfig();
 	if(MyID == 0)
+	{
 		time_begin = MPI_Wtime();
+		outId = fopen("outInfo.dat", "a");
+	}
 
 	nc = config1.ni*config1.nj;
 	gettherm(nc, U.q, U.qs, U.pre, U.tem, U.gam, U.rgas, U.cv);
@@ -68,12 +71,11 @@ void jobbody()
 		if(MyID == 0)
 		{
 			sum_t = sum_t + dtc;
-			if(iStep%1000 == 0)
+			if(iStep%100 == 0)
 			{
 				// run on the cluster platform, output all the information to a file.
-				outId = fopen("outInfo.dat", "a");
 				fprintf(outId, "iStep: %d / total: %d\n",iStep, config1.nStep);
-				fclose(outId);
+				fflush(outId);
 
 				// run on the local computer, monitor output on the screen.
 				//printf("iStep: %d / total: %d\n", iStep, config1.nStep);
@@ -91,10 +93,8 @@ void jobbody()
 				time_cpu = MPI_Wtime() - time_begin;
 				Ttot = config2.t0 + sum_t*tRef;
 
-				outId = fopen("outInfo.dat", "a");
 				printf("output flow field result, flow_time = %e s.\n", Ttot);
 				fprintf(outId, "istep = %d, flow_time = %e s, cpu_time = %e s\n", iStep,Ttot,time_cpu);
-				fclose(outId);
 				postprocess(iStep);
 			}
 		}
@@ -103,10 +103,10 @@ void jobbody()
 	if(MyID == 0)
 	{
 		printf("simulation complete! \n");
-		outId = fopen("outInfo.dat", "a");
 		fprintf(outId, "\n Program exit normally! \n");
-		fclose(outId);
 	}
+
+	fclose(outId);
 }
 
 /*---------------------------------------------------
