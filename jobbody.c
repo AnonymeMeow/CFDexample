@@ -218,7 +218,7 @@ void mpiSendrecv()
 		 * modified.   */
 		printf("The size of MPI array is smaller than required! \n");
 		printf("Modified the value of 'mpicell' in comm.h... \n");
-		MPI_Abort( MPI_COMM_WORLD, 31);
+		exit(31);
 	}
 
 	for(i=0; i<config1.Ng; i++)

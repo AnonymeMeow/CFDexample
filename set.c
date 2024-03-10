@@ -182,7 +182,7 @@ void importjob()
 		if(fp == NULL)
 		{
 			printf("%s not found! \n", filename);
-			MPI_Abort( MPI_COMM_WORLD, 21);
+			exit(21);
 		}
 		printf("reading the field file... \n");
 		fgets(linebuf,sizeof(linebuf),fp);
@@ -257,7 +257,7 @@ void importjob()
 			if(fscanf(fp," %lf %lf %lf %lf %lf %lf %lf %lf",&dum, &dum, &rho, &u, &v, &p, &T, &e) != 8)
 			{
 				printf("format error in tcv.dat \n");
-				MPI_Abort( MPI_COMM_WORLD, 22);
+				exit(22);
 			}
 			if(config1.gasModel != 0)
 			{

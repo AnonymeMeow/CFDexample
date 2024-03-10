@@ -156,7 +156,7 @@ void readmesh()
 	if(fp == NULL)
 	{
 		printf("grid file set%d.dat not found! \n", MyID);
-		MPI_Abort( MPI_COMM_WORLD, 11);
+		exit(11);
 	}
 
 	fgets(linebuf, sizeof(linebuf), fp);
@@ -173,7 +173,7 @@ void readmesh()
 				  &mesh.y_xi[ic], &mesh.y_et[ic], &mesh.yaks[ic]) != 7)
 			{
 				printf("format error in grid file set%d.dat! \n", MyID);
-				MPI_Abort( MPI_COMM_WORLD, 12);
+				exit(12);
 			}
 		}
 	fclose(fp);
@@ -198,7 +198,7 @@ void readmesh()
 		if(fp == NULL)
 		{
 			printf("mesh file mesh.dat not found! \n");
-			MPI_Abort( MPI_COMM_WORLD, 13);
+			exit(13);
 		}
 		fgets(linebuf, sizeof (linebuf), fp);
 		fgets(linebuf, sizeof (linebuf), fp);
@@ -211,7 +211,7 @@ void readmesh()
 		    	if(fscanf(fp," %lf  %lf",&mesh.x[ic], &mesh.y[ic])!= 2)
 		    	{
 					printf("format error in mesh file! \n");
-					MPI_Abort( MPI_COMM_WORLD, 14);
+					exit(14);
 		    	}
 			}
 
@@ -303,7 +303,7 @@ void cheminit()
 		else
 		{
 			printf("input mixture error! \n");
-			MPI_Abort( MPI_COMM_WORLD, 15);
+			exit(15);
 		}
 		fprintf(outId,"\n");
 		if(fgets(linebuf, sizeof(linebuf),fp) == NULL){printf("format error in chemical data \n");exit(0);}
@@ -351,7 +351,7 @@ void therminit()
 		if(sscanf(&linebuf[50], "%2d %lf %lf", &istate, &rmw, &hform) != 3 )
 		{
 			printf("[scarf_glenn] format error in istate, rmw, hfrom\n");
-			MPI_Abort( MPI_COMM_WORLD, 16);
+			exit(16);
 		}
 
 		isspec = 0;
@@ -426,7 +426,7 @@ void therminit()
 	if(icount < config1.nspec)
 	{
 		printf("\n species missing in the file thermal file !!!\n");
-		MPI_Abort( MPI_COMM_WORLD, 17);
+		exit(17);
 	}
 	fclose(fp);
 	fclose(outId);
@@ -467,7 +467,7 @@ void muBlottner()
 	if(fp == NULL)
 	{
 		printf("scarf_blottner.dat not found! \n");
-		MPI_Abort( MPI_COMM_WORLD, 18);
+		exit(18);
 	}
 
 	fprintf(outId,"\n/--------viscosity coefficients of Blottner Model--------/\n");
@@ -509,7 +509,7 @@ void muBlottner()
 	if(icount < config1.nspec)
 	{
 		printf("\n species missing in the file trans.dat !!!\n");
-		MPI_Abort( MPI_COMM_WORLD, 19);
+		exit(19);
 	}
 	fclose(fp);
 	fclose(outId);
@@ -548,7 +548,7 @@ void muCollision()
 		if(sscanf(linebuf, "%s %le %le", tempname, &tempsigma, &tempepok) != 3 )
 		{
 			printf("[scarf_collision.dat] format error! \n");
-			MPI_Abort( MPI_COMM_WORLD, 110);
+			exit(110);
 		}
 
 		for (ns=0; ns<config1.nspec; ns++)
@@ -574,7 +574,7 @@ void muCollision()
 	if(icount < config1.nspec)
 	{
 		printf("\n species missing in the scarf_collision.dat !!!\n");
-		MPI_Abort( MPI_COMM_WORLD, 122);
+		exit(122);
 	}
 
 	fclose(fp);
@@ -602,7 +602,7 @@ void reaction(FILE *fp)
 	if((fgets(linebuf,sizeof(linebuf),fp)) == NULL)
 	{
 		printf("reaction name missing in chemical file \n");
-		MPI_Abort( MPI_COMM_WORLD, 112);
+		exit(112);
 	}
 
     for(nr=0; nr<config1.nreac; nr++)
@@ -704,7 +704,7 @@ Label:  if(fgets(linebuf,sizeof(linebuf),fp) == NULL){printf("format error in ch
 		if( sscanf(linebuf,"%lf %lf %lf %lf", &reacData[nr].af, &reacData[nr].nf, &reacData[nr].thetaf, &ttvf) != 4)
 		{
 			printf("[reaction] format error in af, nr, thetaf \n");
-			MPI_Abort( MPI_COMM_WORLD, 113);
+			exit(113);
 		}
 		fprintf(outId,"forward coefficients: \n");
 		fprintf(outId,"af=%lf nf=%lf thetaf=%lf ttvf=%lf \n",reacData[nr].af, reacData[nr].nf, reacData[nr].thetaf, ttvf);
@@ -718,7 +718,7 @@ Label:  if(fgets(linebuf,sizeof(linebuf),fp) == NULL){printf("format error in ch
 			if(linebuf[0] != 't' && linebuf[0] != 'T')
 			{
 				printf("third body coefficients not found! \n");
-				MPI_Abort( MPI_COMM_WORLD, 114);
+				exit(114);
 			}
 			for(ns=0; ns<config1.nspec; ns++)
 			{
@@ -741,7 +741,7 @@ Label:  if(fgets(linebuf,sizeof(linebuf),fp) == NULL){printf("format error in ch
 				if( sscanf(linebuf,"%lf %lf %lf \n", &reacData[nr].ab, &reacData[nr].nb, &reacData[nr].thetab) != 3)
 				{
 					printf("[reaction] format error in ab,nb, thetab \n");
-					MPI_Abort( MPI_COMM_WORLD, 115);
+					exit(115);
 				}
 				fprintf(outId,"ab=%lf nb=%lf thetab=%lf \n",reacData[nr].ab, reacData[nr].nb, reacData[nr].thetab);
 			}
@@ -755,7 +755,7 @@ Label:  if(fgets(linebuf,sizeof(linebuf),fp) == NULL){printf("format error in ch
 						&reacData[nr].Br[2], &reacData[nr].Br[3], &reacData[nr].Br[4]) != 5)
 				{
 					printf("[reaction] format error in Br[1] ~ Br[5]\n");
-					MPI_Abort( MPI_COMM_WORLD, 116);
+					exit(116);
 				}
 				fprintf(outId,"Br[1] ~ Br[5]=%lf, %lf, %lf, %lf, %lf\n",reacData[nr].Br[0], reacData[nr].Br[1],
 						reacData[nr].Br[2], reacData[nr].Br[3], reacData[nr].Br[4]);
