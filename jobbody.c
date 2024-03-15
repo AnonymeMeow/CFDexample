@@ -35,7 +35,7 @@ void jobbody()
 	mpiConfig();
 	if(MyID == 0)
 	{
-		time_begin = MPI_Wtime();
+		// time_begin = MPI_Wtime();
 		outId = fopen("outInfo.dat", "a");
 	}
 
@@ -60,7 +60,7 @@ void jobbody()
 
 		for(ik=0; ik<config1.timeOrder; ik++)
 		{
-			mpiSendrecv();
+			// mpiSendrecv();
 			RKtvd3(ik, dtc);
 			gettherm(nc, U.q, U.qs, U.pre, U.tem, U.gam, U.rgas, U.cv);
 			gettrans(nc, U.qs, U.tem, U.gam, U.cv, U.mu, U.kt, U.di);
@@ -86,11 +86,11 @@ void jobbody()
 		{
 			saveData(iStep);
 
-			MPI_Barrier(MPI_COMM_WORLD);
+			// MPI_Barrier(MPI_COMM_WORLD);
 
 			if((MyID==0) && (iStep%config1.ifilm==0))
 			{
-				time_cpu = MPI_Wtime() - time_begin;
+				// time_cpu = MPI_Wtime() - time_begin;
 				Ttot = config2.t0 + sum_t*tRef;
 
 				printf("output flow field result, flow_time = %e s.\n", Ttot);

@@ -42,7 +42,7 @@ struct strct_configInt
 
 struct strct_configDouble
 {
-	double x0, Sc0, Re0, muRef, condRef, diffRef, p2, T2, u2, v2;
+	double x0, Sc0, Re0, condRef, diffRef, p2, T2, u2, v2;
 	double molWeight; // Average mole weight of the gas
 	double gam0; // Heat capacity ratio (C_V/C_p)
 	double Pr0; // Prandtl number (C_p*mu/lambda)

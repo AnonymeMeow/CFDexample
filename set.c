@@ -77,7 +77,7 @@ void initjob()
 		}
 	    config1.x_sh = i; 
 	}
-	MPI_Bcast(&config1.x_sh, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	// MPI_Bcast(&config1.x_sh, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	// get the position of the diaphragm
     i0 = config1.x_sh/config1.ni; // the integer part
     ir = config1.x_sh%config1.ni; // the remainder part
@@ -92,7 +92,7 @@ void initjob()
 	else
 		assigncells(0,config1.ni, 0,config1.nj, inc[1].u,inc[1].v,inc[1].t,inc[1].p, inc[1].ys);
 
-	MPI_Barrier(MPI_COMM_WORLD);
+	// MPI_Barrier(MPI_COMM_WORLD);
 }
 /*-----------------------------------------------------------
  * Assign initial value to each cells

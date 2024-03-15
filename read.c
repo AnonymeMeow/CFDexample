@@ -27,14 +27,14 @@ void readjob()
 
 	neqv = 4; // solution variables without chemical terms
 
-	if(MyID == 0)
-	{
+	// if(MyID == 0)
+	// {
 		readconfig();
 		if(config1.gasModel != 0)
 			cheminput();
-	}
+	// }
 
-	BcastData();
+	// BcastData();
 	readic();
 	readmesh();
 }
@@ -79,6 +79,8 @@ void readconfig()
 	if(fscanf(fp, "%lf %lf", &config2.Lx, &config2.Ly) != 2)
 			 {printf("format error in gridset.dat\n");exit(0);}
 	fclose(fp);
+
+	nproc = config1.nblock;
 
 	fprintf(outId, "\n/---------------------------configure data---------------------------/\n");
 	fprintf(outId, "\nt0=%lf, x0=%lf, Lx=%lf, Ly=%lf\n", config2.t0, config2.x0, config2.Lx, config2.Ly);
