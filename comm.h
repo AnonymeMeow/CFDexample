@@ -18,14 +18,18 @@
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
 #define MAX(a,b) (((a) > (b)) ? (a) : (b))
 
-int neqn, nproc, MyID;
-int I0; // Number of cells in x direction for each thread, including ghost cells
-int J0; // Number of cells in y direction, including ghost cells
-int neqv; // Solution variables without chemical terms
-double dxc; // Non-dimensional length of each cell in xi direction
-double dyc; // Non-dimensional length of each cell in et direction
+#ifndef SCARF_DECLSPEC
+#define SCARF_DECLSPEC extern
+#endif
 
-struct strct_configInt
+SCARF_DECLSPEC int neqn, nproc, MyID;
+SCARF_DECLSPEC int I0; // Number of cells in x direction for each thread, including ghost cells
+SCARF_DECLSPEC int J0; // Number of cells in y direction, including ghost cells
+SCARF_DECLSPEC int neqv; // Solution variables without chemical terms
+SCARF_DECLSPEC double dxc; // Non-dimensional length of each cell in xi direction
+SCARF_DECLSPEC double dyc; // Non-dimensional length of each cell in et direction
+
+SCARF_DECLSPEC struct strct_configInt
 {
 	int newrun, nonDi, useDt, nblock,
 		ifilm, gasModel, visModel, reacModel, transModel,
@@ -40,7 +44,7 @@ struct strct_configInt
 	int Samples; // Intervals for the program to output results
 } config1;
 
-struct strct_configDouble
+SCARF_DECLSPEC struct strct_configDouble
 {
 	double x0, Sc0, Re0, condRef, diffRef, p2, T2, u2, v2;
 	double molWeight; // Average mole weight of the gas
@@ -61,18 +65,18 @@ struct strct_configDouble
 } config2;
 
 /*- reference state -*/
-double LRef, uRef, cvRef, rhoRef, tRef, temRef, preRef,
+SCARF_DECLSPEC double LRef, uRef, cvRef, rhoRef, tRef, temRef, preRef,
        rgasRef, muRef, condRef, diffRef, Upsilon;
 
 /*- MPI related -*/
-int dest, ierr, nachbar_rechts, nachbar_links, NMAXproc;
-struct strct_gcelltype
+SCARF_DECLSPEC int dest, ierr, nachbar_rechts, nachbar_links, NMAXproc;
+SCARF_DECLSPEC struct strct_gcelltype
 {
 	double rho, u, v, e, p, t, mu, kt, ga, qs[6], di[6];
 }mpiSend_ql[mpicell], mpiSend_qr[mpicell], mpiRecv_ql[mpicell], mpiRecv_qr[mpicell];
 
 /*- Origin flow variables -*/
-struct strct_U
+SCARF_DECLSPEC struct strct_U
 {
 	double **qs, **di;
 	double ** q; // (rho, u, v, e)
@@ -86,7 +90,7 @@ struct strct_U
 } U, Ug;
 
 /*- viscous related variables -*/
-struct strct_Uv
+SCARF_DECLSPEC struct strct_Uv
 {
 	// origin variables derivatives
 	double *u_xi, *u_et, *v_xi, *v_et, *T_xi, *T_et, **qs_xi, **qs_et;
@@ -97,7 +101,7 @@ struct strct_Uv
 } Uv;
 
 /*- flux related variables -*/
-struct strct_flux
+SCARF_DECLSPEC struct strct_flux
 {
 	double *xix, *xiy, *etx, *ety, *yas, *rho,
 		*du, *dv, *dt, **dqs,
@@ -110,13 +114,13 @@ struct strct_flux
 } U1d;
 
 /*- initial condition variables -*/
-struct strct_ic
+SCARF_DECLSPEC struct strct_ic
 {
 	double u, v, t, p, ys[6];
 } inc[2];
 
 /* Geometry variables (coordinations and derivatives) */
-struct strct_metric
+SCARF_DECLSPEC struct strct_metric
 {
 	double *qbound;
 	double* x, * y; // Physical coordination of the cell (x, y)
@@ -126,10 +130,10 @@ struct strct_metric
 } mesh;
 
 /*- others -*/
-double **qso, ***dsdq;
-double** qo; // (rho, u, v, e) value from the last step
-double** rhs; // The increment value of (rho, u, v, e)
+SCARF_DECLSPEC double **qso, ***dsdq;
+SCARF_DECLSPEC double** qo; // (rho, u, v, e) value from the last step
+SCARF_DECLSPEC double** rhs; // The increment value of (rho, u, v, e)
 
-double **dmat1, **sour, **dtdq;
+SCARF_DECLSPEC double **dmat1, **sour, **dtdq;
 
 #endif /* COMM_H_ */

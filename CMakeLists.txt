@@ -1,9 +1,11 @@
 cmake_minimum_required(VERSION 3.8)
-project(CFDexample)
+project(SCARF)
 
 aux_source_directory(${CMAKE_SOURCE_DIR} scarf_src)
 
-set(MPI_DIR "C:/Program Files (x86)/Microsoft SDKs/MPI")
+set(MPI_DIR /home/nyan/openmpi)
+
+link_libraries(m dl)
 
 function(add_target target_name)
     add_executable(${target_name}_grid ${CMAKE_SOURCE_DIR}/grid2D.c)
@@ -17,13 +19,13 @@ function(add_target target_name)
         PUBLIC ${target_name}
         PUBLIC SCARF
     )
-    target_include_directories(${target_name}_scarf PUBLIC ${MPI_DIR}/Include)
-    target_link_libraries(${target_name}_scarf PUBLIC ${MPI_DIR}/Lib/x64/msmpi.lib)
+    target_include_directories(${target_name}_scarf PUBLIC ${MPI_DIR}/include)
+    target_link_libraries(${target_name}_scarf PUBLIC ${MPI_DIR}/lib/libmpi.so)
     set_target_properties(${target_name}_scarf PROPERTIES OUTPUT_NAME scarf)
 
     add_custom_target(${target_name}_build_and_run
         DEPENDS ${target_name}_grid ${target_name}_scarf
-        COMMAND ${CMAKE_SOURCE_DIR}/run.bat ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
+        COMMAND ${CMAKE_SOURCE_DIR}/run.sh ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
     )
 endfunction()
 

@@ -6,6 +6,11 @@
  *  Last updated on Oct. 27, 2014
  */
 
+#define SCARF_DECLSPEC
+
+#include "chemdata.h"
+#include "comm.h"
+
 extern "C"
 {
 	void startjob(int argc, char *argv[]);
