@@ -12,14 +12,18 @@
 #define maxreac 11
 #define maxmix 2
 
-char spname[6][15];
-struct strct_specData
+#ifndef SCARF_DECLSPEC
+#define SCARF_DECLSPEC extern
+#endif
+
+SCARF_DECLSPEC char spname[6][15];
+SCARF_DECLSPEC struct strct_specData
 {
 	int  ntemrng, mdof;
 	double wm, hof, tempmax, tempmin, temrng[3][2], acoef[3][10], qsin[2], vis[3];
 } specData[6];
 
-struct strct_reacData
+SCARF_DECLSPEC struct strct_reacData
 {
 	int thirdbody, backrate;
 	double af, nf, thetaf, ab, nb, thetab, Br[maxspec],

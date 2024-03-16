@@ -20,16 +20,20 @@
 
 #define MPI_RUN
 
-int I0, J0, neqv, neqn, nproc, MyID;
-double dxc, dyc;
+#ifndef SCARF_DECLSPEC
+#define SCARF_DECLSPEC extern
+#endif
 
-struct strct_configInt
+SCARF_DECLSPEC int I0, J0, neqv, neqn, nproc, MyID;
+SCARF_DECLSPEC double dxc, dyc;
+
+SCARF_DECLSPEC struct strct_configInt
 {
 	int newrun, nonDi, useDt, ni, nj, Ng, nblock, iStep0, nStep, timeOrder, 
 		Samples, nRamp, ifilm, gasModel, visModel, reacModel, transModel,
 	    x_sh, nmix, nspec, nreac, thermo_base;
 } config1;
-struct strct_configDouble
+SCARF_DECLSPEC struct strct_configDouble
 {
 	double t0, x0, Lx, Ly, dt0, dt1, CFL0, CFL1, molWeight, gam0,
 		   Pr0, Sc0, Re0, muRef, suthC1, suthC2, condRef, diffRef, MaRef, temRef, preRef,
@@ -37,27 +41,27 @@ struct strct_configDouble
 } config2;
 
 /*- reference state -*/
-double LRef, uRef, cvRef, rhoRef, tRef, temRef, preRef,
+SCARF_DECLSPEC double LRef, uRef, cvRef, rhoRef, tRef, temRef, preRef,
        rgasRef, muRef, condRef, diffRef, Upsilon;
 
 /*- MPI related -*/
 #ifdef MPI_RUN
-char processor_name[256];
-int dest, ierr, nachbar_rechts, nachbar_links, namelen, NMAXproc;
-struct strct_gcelltype
+SCARF_DECLSPEC char processor_name[256];
+SCARF_DECLSPEC int dest, ierr, nachbar_rechts, nachbar_links, namelen, NMAXproc;
+SCARF_DECLSPEC struct strct_gcelltype
 {
 	double rho, u, v, e, p, t, mu, kt, ga, qs[6], di[6];
 }mpiSend_ql[mpicell], mpiSend_qr[mpicell], mpiRecv_ql[mpicell], mpiRecv_qr[mpicell];
 #endif
 
 /*- Origin flow variables -*/
-struct strct_U
+SCARF_DECLSPEC struct strct_U
 {
 	double **q, **qs, *pre, *tem, *mu, *kt, *cv, *rgas, *gam, **di;
 } U, Ug;
 
 /*- viscous related variables -*/
-struct strct_Uv
+SCARF_DECLSPEC struct strct_Uv
 {
 	// origin variables derivatives
 	double *u_xi, *u_et, *v_xi, *v_et, *T_xi, *T_et, **qs_xi, **qs_et;
@@ -68,7 +72,7 @@ struct strct_Uv
 } Uv;
 
 /*- flux related variables -*/
-struct strct_flux
+SCARF_DECLSPEC struct strct_flux
 {
 	double *xix, *xiy, *etx, *ety, *yas, *rho,
 	*du, *dv, *dt, **dqs,
@@ -76,18 +80,18 @@ struct strct_flux
 } U1d;
 
 /*- initial condition variables -*/
-struct strct_ic
+SCARF_DECLSPEC struct strct_ic
 {
 	double u, v, t, p, ys[6];
 } inc[2];
 
 /*- geometry variables -*/
-struct strct_metric
+SCARF_DECLSPEC struct strct_metric
 {
 	double *x, *y, *xi, *et, *x_xi, *x_et, *y_xi, *y_et, *yaks, *qbound;
 } mesh;
 
 /*- others -*/
-double **qo, **qso, **rhs, ***dsdq;
+SCARF_DECLSPEC double **qo, **qso, **rhs, ***dsdq;
 
 #endif /* COMM_H_ */
