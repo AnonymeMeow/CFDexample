@@ -13,20 +13,39 @@
 
 extern "C"
 {
-	void startjob(int argc, char *argv[]);
+	void grid();
 	void readjob();
 	void setjob();
 	void jobbody();
 	void endjob();
 }
 
+#include <thread>
+
 int main(int argc, char *argv[])
 {
-	startjob(argc, argv);
+	grid();
 	readjob();
 	setjob();
-	jobbody();
-    endjob();
+
+	std::thread *threads = new std::thread[nproc];
+	for (int i = 0; i < nproc; i++)
+	{
+		threads[i] = std::thread(
+			[&] (int thread_id) {
+				MyID = thread_id;
+				jobbody();
+			},
+			i
+		);
+	}
+
+	for (int i = 0; i < nproc; i++)
+	{
+		threads[i].join();
+	}
+
+	endjob();
 
     return 0;
 }

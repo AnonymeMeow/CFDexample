@@ -31,7 +31,7 @@ SCARF_DECLSPEC double dyc; // Non-dimensional length of each cell in et directio
 
 SCARF_DECLSPEC struct strct_configInt
 {
-	int newrun, nonDi, useDt, nblock,
+	int newrun, nonDi, useDt,
 		ifilm, gasModel, visModel, reacModel, transModel,
 	    x_sh, nmix, nspec, nreac, thermo_base;
 	int timeOrder; // Time order of the Runge-Kutta method (?)
@@ -46,7 +46,7 @@ SCARF_DECLSPEC struct strct_configInt
 
 SCARF_DECLSPEC struct strct_configDouble
 {
-	double x0, Sc0, Re0, condRef, diffRef, p2, T2, u2, v2;
+	double x0, Sc0, Re0, condRef, diffRef;
 	double molWeight; // Average mole weight of the gas
 	double gam0; // Heat capacity ratio (C_V/C_p)
 	double Pr0; // Prandtl number (C_p*mu/lambda)
@@ -61,7 +61,7 @@ SCARF_DECLSPEC struct strct_configDouble
 	double MaRef; // Reference Mach number, which only used for the non-dimension of velocity and have no relation to the actual Mach number
 	double temRef; // Reference temperature which only used for non-perfect gas to recover the dimension, while for perfect gas flow not used
 	double preRef; // Reference density which only used for non-perfect gas to recover the dimension, while for perfect gas flow not used
-	double p1, T1, u1, v1; // Initial condition
+	double p1, T1, u1, v1, p2, T2, u2, v2; // Initial condition
 } config2;
 
 /*- reference state -*/
@@ -122,7 +122,6 @@ SCARF_DECLSPEC struct strct_ic
 /* Geometry variables (coordinations and derivatives) */
 SCARF_DECLSPEC struct strct_metric
 {
-	double *qbound;
 	double* x, * y; // Physical coordination of the cell (x, y)
 	double * xi, * et; // Non-dimensional coordination of the cell (xi, et)
 	double * x_xi, * x_et, * y_xi, * y_et; // The derivatives of the physical coordination (x, y) over the non-dimensional coordination (xi, et)

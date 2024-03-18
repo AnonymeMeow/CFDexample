@@ -3,28 +3,16 @@ project(SCARF)
 
 aux_source_directory(${CMAKE_SOURCE_DIR} scarf_src)
 
-set(MPI_DIR /home/nyan/openmpi)
-
 link_libraries(m dl)
 
 function(add_target target_name)
-    add_executable(${target_name}_grid ${CMAKE_SOURCE_DIR}/grid2D.c)
-
-    target_compile_definitions(${target_name}_grid PUBLIC ${target_name})
-    set_target_properties(${target_name}_grid PROPERTIES OUTPUT_NAME grid)
-
     add_executable(${target_name}_scarf ${scarf_src})
 
-    target_compile_definitions(${target_name}_scarf
-        PUBLIC ${target_name}
-        PUBLIC SCARF
-    )
-    target_include_directories(${target_name}_scarf PUBLIC ${MPI_DIR}/include)
-    target_link_libraries(${target_name}_scarf PUBLIC ${MPI_DIR}/lib/libmpi.so)
+    target_compile_definitions(${target_name}_scarf PUBLIC ${target_name})
     set_target_properties(${target_name}_scarf PROPERTIES OUTPUT_NAME scarf)
 
     add_custom_target(${target_name}_build_and_run
-        DEPENDS ${target_name}_grid ${target_name}_scarf
+        DEPENDS ${target_name}_scarf
         COMMAND ${CMAKE_SOURCE_DIR}/run.sh ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
     )
 endfunction()

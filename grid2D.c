@@ -5,25 +5,21 @@
  *  Update for Cylinder grids On Nov.03, 2014
  */
 
-#ifndef SCARF
-
 #include<string.h>
 #include<stdio.h>
 #include<stdlib.h>
 #include<math.h>
 
-int main(int argc, char* argv[])
+#include "comm.h"
+
+void grid()
 {
 	int i, j, ic, ic1, ic2, nc,id, ir1, ii, jj, gtype,
-		jr, jr1, I0, J0, i1, ik, nik, ni, nj, ir, Ng, nproc;
+		jr, jr1, i1, ik, ni, ir;
 	double xm, ym, dx, dy, d_xi, d_et, R_c, rrr, pi, jm1, sumj1;
-	double L_a, L_b, M_1, M_2, Mn_1, Mn_2, alpha1, alpha2;
+	double M_1, M_2, Mn_1, Mn_2, alpha1, alpha2;
 	char filename[20];
 	FILE  *fp;
-	struct strct_metric
-	{
-		double *x, *y, *xi, *et, *x_xi, *x_et, *y_xi, *y_et, *yaks;
-	} mesh;
 
 	/*--------0. read grid configure data --------*/
 	fp    = fopen("gridset.dat", "r");
@@ -32,8 +28,8 @@ int main(int argc, char* argv[])
 		printf("gridset.dat file not found \n");
 		exit(0);
 	}
-	fscanf(fp, "%d %d %d %d", &nik, &nj, &Ng, &nproc);
-	fscanf(fp, "%lf %lf %lf %lf", &L_a, &L_b, &alpha1, &alpha2);
+	fscanf(fp, "%d %d %d %d", &config1.ni, &config1.nj, &config1.Ng, &nproc);
+	fscanf(fp, "%lf %lf %lf %lf", &config2.Lx, &config2.Ly, &alpha1, &alpha2);
 	fscanf(fp, "%lf %lf %d", &xm, &ym, &gtype);
 	if(gtype != 0)
 	{
@@ -44,11 +40,11 @@ int main(int argc, char* argv[])
 
 	fclose(fp);
 
-	ni  = nik * nproc;
-	I0  = ni + 2*Ng;
-	J0  = nj + 2*Ng;
-	ir  = ni + Ng;
-	jr  = nj + Ng;
+	ni  = config1.ni * nproc;
+	I0  = ni + 2*config1.Ng;
+	J0  = config1.nj + 2*config1.Ng;
+	ir  = ni + config1.Ng;
+	jr  = config1.nj + config1.Ng;
 	nc  = I0*J0;
 
 	mesh.x     = (double*)malloc(sizeof(double)*nc);
@@ -72,7 +68,7 @@ int main(int argc, char* argv[])
         }
         else
         {
-        	M_1 = L_a*(1. - alpha1)/(1. - pow(alpha1, ni-1));
+        	M_1 = config2.Lx*(1. - alpha1)/(1. - pow(alpha1, ni-1));
         	Mn_1 = M_1*pow(alpha1, ni-1);
             printf("Geometric progression grid of x: X_1 = %le, X_N=%le\n", M_1, Mn_1);
         }
@@ -82,31 +78,31 @@ int main(int argc, char* argv[])
         }
         else
         {
-        	M_2 = L_b*(1. - alpha2)/(1. - pow(alpha2, nj-1));
-        	Mn_2 = M_2*pow(alpha2, nj-1);
+        	M_2 = config2.Ly*(1. - alpha2)/(1. - pow(alpha2, config1.nj-1));
+        	Mn_2 = M_2*pow(alpha2, config1.nj-1);
         	printf("Geometric progression grid of y: Y_1 = %le, Y_n=%le\n", M_2, Mn_2);
         }
-    	for(j=Ng; j<jr; j++)
+    	for(j=config1.Ng; j<jr; j++)
     	{
     		if( fabs(alpha2 - 1.0) < 1.e-10 )
     		{
     			// Uniform grid
-				dy = (double)(j - Ng);
-				dy = L_b*dy/nj;
+				dy = (double)(j - config1.Ng);
+				dy = config2.Ly*dy/config1.nj;
     		}
     		else
     		{
     			// Geometric sequence
 #if defined Cavity || defined Plate
-    			if(j == Ng)
+    			if(j == config1.Ng)
     				dy = 0.;
     			else
-    				dy = M_2*(1. - pow(alpha2, j-Ng))/(1. - alpha2);
+    				dy = M_2*(1. - pow(alpha2, j-config1.Ng))/(1. - alpha2);
 #elif defined Tube
-    			sumj1 = (j - Ng)*1.e-4;
+    			sumj1 = (j - config1.Ng)*1.e-4;
     			if(sumj1 <= 0.01)
     			{
-    				dy = (double)(j - Ng);
+    				dy = (double)(j - config1.Ng);
     				dy = 1.e-4*dy;
     				sumj1 = dy;
     				jm1 = j;
@@ -119,21 +115,21 @@ int main(int argc, char* argv[])
 #endif
     		}
 
-    		for(i=Ng; i<ir; i++)
+    		for(i=config1.Ng; i<ir; i++)
     		{
     			ic = i*J0 + j;
     			if( fabs(alpha1 - 1.0) < 1.e-8 )
     			{
     				// Uniform grid
-    				dx = (double)(i - Ng);
-    				dx = L_a*dx/ni;
+    				dx = (double)(i - config1.Ng);
+    				dx = config2.Lx*dx/ni;
     			}
     			else
     			{
-    				if(i == Ng)
+    				if(i == config1.Ng)
     					dx = 0.;
     				else
-    					dx = M_1*(1. - pow(alpha1, i-Ng))/(1. - alpha1);
+    					dx = M_1*(1. - pow(alpha1, i-config1.Ng))/(1. - alpha1);
     			}
     			mesh.x[ic] = dx;
     			mesh.y[ic] = dy;
@@ -147,23 +143,23 @@ int main(int argc, char* argv[])
     	alpha2 = alpha2*(pi/2);
 
     	// Note: one can only create grid points, not cells...
-    	// i=Ng line: an ellipse with long-radius L_a, short-radius L_b
-    	for(j=Ng; j<jr; j++)
+    	// i=config1.Ng line: an ellipse with long-radius config2.Lx, short-radius config2.Ly
+    	for(j=config1.Ng; j<jr; j++)
     	{
-    		ic = Ng*J0 + j;
-    		dy = j - Ng;
-    		dy = dy/(nj-1);
+    		ic = config1.Ng*J0 + j;
+    		dy = j - config1.Ng;
+    		dy = dy/(config1.nj-1);
     		rrr = 2.*dy - 1.; // range [-1, 1]
 			
-			mesh.x[ic] =  L_a * cos(pi - alpha2*rrr) + M_2;
-			mesh.y[ic] =  L_b * sin(pi - alpha2*rrr);
+			mesh.x[ic] =  config2.Lx * cos(pi - alpha2*rrr) + M_2;
+			mesh.y[ic] =  config2.Ly * sin(pi - alpha2*rrr);
     	}
-    	// i=ni+Ng line: a circle with radius R_c, center M_1
-    	// for(j=Ng; j<jr; j++)
+    	// i=ni+config1.Ng line: a circle with radius R_c, center M_1
+    	// for(j=config1.Ng; j<jr; j++)
     	// {
     	// 	ic = (ir-1)*J0 + j;
-    	// 	dy = j - Ng;
-    	// 	dy = dy/(nj-1);
+    	// 	dy = j - config1.Ng;
+    	// 	dy = dy/(config1.nj-1);
     	// 	rrr = 2.*dy - 1.; // range [-1, 1]
     	// 	mesh.x[ic] = R_c * cos(pi - alpha1*rrr) + M_1;
 	    // 	mesh.y[ic] = R_c * sin(pi - alpha1*rrr);
@@ -178,23 +174,23 @@ int main(int argc, char* argv[])
     // 	alpha2 = alpha2*(pi/2);
 
     // 	// Note: one can only create grid points, not cells...
-    // 	// i=Ng line: an ellipse with long-radius L_a, short-radius L_b
-    // 	for(j=Ng; j<jr; j++)
+    // 	// i=config1.Ng line: an ellipse with long-radius config2.Lx, short-radius config2.Ly
+    // 	for(j=config1.Ng; j<jr; j++)
     // 	{
-    // 		ic = Ng*J0 + j;
-    // 		dy = j - Ng;
-    // 		dy = dy/(nj-1);
+    // 		ic = config1.Ng*J0 + j;
+    // 		dy = j - config1.Ng;
+    // 		dy = dy/(config1.nj-1);
     // 		rrr = 2.*dy - 1.; // range [-1, 1]
-	// 		mesh.x[ic] =  L_a * cos(pi - alpha2*rrr) + M_2;
-	// 		mesh.y[ic] =  L_b * sin(pi - alpha2*rrr);
+	// 		mesh.x[ic] =  config2.Lx * cos(pi - alpha2*rrr) + M_2;
+	// 		mesh.y[ic] =  config2.Ly * sin(pi - alpha2*rrr);
 
     // 	}
-    // 	// i=ni+Ng line: a circle with radius R_c, center M_1
-    // 	for(j=Ng; j<jr; j++)
+    // 	// i=ni+config1.Ng line: a circle with radius R_c, center M_1
+    // 	for(j=config1.Ng; j<jr; j++)
     // 	{
     // 		ic = (ir-1)*J0 + j;
-    // 		dy = j - Ng;
-    // 		dy = dy/(nj-1);
+    // 		dy = j - config1.Ng;
+    // 		dy = dy/(config1.nj-1);
     // 		rrr = 2.*dy - 1.; // range [-1, 1]
     // 		mesh.x[ic] = R_c * cos(pi - alpha1*rrr) + M_1;
 	//     	mesh.y[ic] = R_c * sin(pi - alpha1*rrr);
@@ -203,14 +199,14 @@ int main(int argc, char* argv[])
 
 	// Interpolation
     /*
-	for(j=Ng; j<jr; j++)
+	for(j=config1.Ng; j<jr; j++)
 	{
-		ic1 = Ng*J0     + j;
+		ic1 = config1.Ng*J0     + j;
 		ic2 = (ir-1)*J0 + j;
-		for(i=Ng+1; i<ir-1; i++)
+		for(i=config1.Ng+1; i<ir-1; i++)
 		{
 			ic = i*J0 + j;
-	    		dx = (i - Ng);
+	    		dx = (i - config1.Ng);
 	    		dx = dx/(ni-1);
 	    		mesh.x[ic] = mesh.x[ic1] + dx*(mesh.x[ic2] - mesh.x[ic1]);
 	    		mesh.y[ic] = mesh.y[ic1] + dx*(mesh.y[ic2] - mesh.y[ic1]);
@@ -220,25 +216,27 @@ int main(int argc, char* argv[])
 	/*----------2. set the new coordination (xi, et)----------*/
 
 	d_xi = xm/ni;
-	d_et = ym/nj; // uniform meshmesh.x[ic];mesh.x[ic];
-	for(j=Ng; j<jr; j++)
-		for(i=Ng; i<ir; i++)
+	d_et = ym/config1.nj; // uniform meshmesh.x[ic];mesh.x[ic];
+	for(j=config1.Ng; j<jr; j++)
+	{
+		for(i=config1.Ng; i<ir; i++)
 		{
 			ic = i*J0 + j;
 
-			mesh.xi[ic] = (i-Ng)*d_xi;
-			mesh.et[ic] = (j-Ng)*d_et;
+			mesh.xi[ic] = (i-config1.Ng)*d_xi;
+			mesh.et[ic] = (j-config1.Ng)*d_et;
 		}
+	}
 
 	/*----------3. Interpolation for ghost cells----------*/
 	/* keep the second derivative equals zero
 	 * e.g. [x(i+1) - 2x(i) + x(i-1)] = 0 */
 
-	for(j=Ng; j<jr; j++)
+	for(j=config1.Ng; j<jr; j++)
 	{
 		// left side
-	    ii = Ng - 1; // set ghost cells: 2, 1, 0
-	    for(i=0; i<Ng; i++)
+	    ii = config1.Ng - 1; // set ghost cells: 2, 1, 0
+	    for(i=0; i<config1.Ng; i++)
 	    {
 	    	ic = ii*J0 + j;
 	    	ic1 = (ii+1)*J0 + j;
@@ -273,8 +271,8 @@ int main(int argc, char* argv[])
 	for(i=0; i<I0; i++)
 	{
 		// bottom side
-		jj = Ng - 1;
-	    for(j=0; j<Ng; j++)
+		jj = config1.Ng - 1;
+	    for(j=0; j<config1.Ng; j++)
 	    {
 	    	ic  = i*J0 + jj;
 	    	ic1 = i*J0 + jj+1;
@@ -357,63 +355,13 @@ int main(int argc, char* argv[])
 	}
 
 	for(i=0; i<I0; i++)
+	{
 		for(j=0; j<J0; j++)
 		{
 			ic = i*J0 + j;
 			mesh.yaks[ic] = mesh.x_xi[ic]*mesh.y_et[ic] -
 					        mesh.y_xi[ic]*mesh.x_et[ic];
 		}
-	/*----------5. output the mesh file----------*/
-    printf("output mesh file... \n");
-	fp = fopen("mesh.dat","w");
-    fprintf(fp, "Title = \"2D mesh\"\n");
-    fprintf(fp, "variables = x y \n");
-    fprintf(fp,"ZONE T='1', I= %d, J= %d, f=point \n", ni, nj);
-    for(j=Ng; j<jr; j++)
-    	for(i=Ng; i<ir; i++)
-    	{
-    		ic = i*J0 + j;
-    		fprintf(fp, "%le %le", mesh.x[ic], mesh.y[ic]);
-    		fprintf(fp, "\n");
-    	}
-    fclose(fp);
-
-    /*----------6. output the grid files for each processor----------*/
-    printf("output grid files... \n");
-    for(id=0; id<nproc; id++)
-    {
-    	sprintf(filename, "set%d.dat", id);
-    	fp = fopen(filename,"w");
-        fprintf(fp, "Title = \"sub_mesh\"\n");
-        fprintf(fp, "variables = x y x_xi x_et y_xi y_et yaks \n");
-        fprintf(fp,"ZONE T='1', I= %d, J= %d, f=point \n", nik+2*Ng, J0);
-
-    	i1 = id*nik;
-    	ik = (id+1)*nik + 2*Ng;
-
-		for(j=0; j<J0; j++)
-			for(i=i1; i<ik; i++)
-    		{
-    			ic = i*J0 + j;
-    			fprintf(fp,"%le %le %le %le %le %le %le \n",
-    					mesh.xi[ic], mesh.et[ic], mesh.x_xi[ic], mesh.x_et[ic],
-    					mesh.y_xi[ic], mesh.y_et[ic], mesh.yaks[ic]);
-    		}
-        fclose(fp);
-    }
+	}
     printf("complete!!! \n");
-
-	free(mesh.x);
-	free(mesh.y);
-	free(mesh.xi);
-	free(mesh.et);
-	free(mesh.x_xi);
-	free(mesh.x_et);
-	free(mesh.y_xi);
-	free(mesh.y_et);
-	free(mesh.yaks);
-
-    return(0);
 }
-
-#endif

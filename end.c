@@ -7,7 +7,6 @@
 
 #include<stdio.h>
 #include<stdlib.h>
-#include<mpi.h>
 #include"comm.h"
 
 /*---------------------------------------------------
@@ -36,9 +35,6 @@ void endjob()
 		free(mesh.y);
 		printf("program exits! \n");
 	}
-
-	// MPI_Finalize();
-	exit(0);
 }
 
 /*---------------------------------------------------

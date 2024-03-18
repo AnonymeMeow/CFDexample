@@ -5,7 +5,6 @@
  *
  */
 #include<math.h>
-#include<mpi.h>
 #include"comm.h"
 #include"chemdata.h"
 
@@ -55,7 +54,7 @@ void setjob()
  * ------------------------------------------------*/
 void initjob()
 {
-	int i, mni, i0, ir, ic, icp;
+	int i, mni, ic, icp;
 	double dis;
 	void assigncells(int i1, int in, int j1, int jn, double u,
 			         double v, double t, double p, double *qs);
@@ -63,37 +62,25 @@ void initjob()
 	config2.t0 = 0;
 	config1.iStep0 = 1;
 
-	if(MyID == 0)
+	mni = nproc*config1.ni;
+	dis = config2.x0*config2.Lx;
+	for(i=0; i<mni; i++)
 	{
-		/* Note: only MyID==0 carries the mesh data */
-		mni = nproc*config1.ni;
-		dis = config2.x0*config2.Lx;
-		for(i=0; i<mni; i++)
-		{
-			ic = i*config1.nj + 0;
-			icp = (i+1)*config1.nj + 0;
-			if((mesh.x[ic]<=dis) && (dis<mesh.x[icp]))
-				break;
-		}
-	    config1.x_sh = i; 
+		ic = i*config1.nj + 0;
+		icp = (i+1)*config1.nj + 0;
+		if((mesh.x[ic]<=dis) && (dis<mesh.x[icp]))
+			break;
 	}
-	// MPI_Bcast(&config1.x_sh, 1, MPI_INT, 0, MPI_COMM_WORLD);
-	// get the position of the diaphragm
-    i0 = config1.x_sh/config1.ni; // the integer part
-    ir = config1.x_sh%config1.ni; // the remainder part
+	config1.x_sh = i;
 
-	if(MyID < i0)
-		assigncells(0,config1.ni, 0,config1.nj, inc[0].u,inc[0].v,inc[0].t,inc[0].p, inc[0].ys);
-	else if((MyID == i0) && (ir != 0))
-	{
-		assigncells(0,ir, 0,config1.nj, inc[0].u,inc[0].v,inc[0].t,inc[0].p, inc[0].ys);
-		assigncells(ir,config1.ni, 0,config1.nj, inc[1].u,inc[1].v,inc[1].t,inc[1].p, inc[1].ys);
-	} 
-	else
-		assigncells(0,config1.ni, 0,config1.nj, inc[1].u,inc[1].v,inc[1].t,inc[1].p, inc[1].ys);
+	// MPI_Bcast(&config1.x_sh, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+	assigncells(0, config1.x_sh, 0, config1.nj, inc[0].u, inc[0].v, inc[0].t, inc[0].p, inc[0].ys);
+	assigncells(config1.x_sh, config1.ni, 0, config1.nj, inc[1].u, inc[1].v, inc[1].t, inc[1].p, inc[1].ys);
 
 	// MPI_Barrier(MPI_COMM_WORLD);
 }
+
 /*-----------------------------------------------------------
  * Assign initial value to each cells
  * ---------------------------------------------------------*/
@@ -102,13 +89,13 @@ void assigncells(int i1, int in, int j1, int jn, double u,
 {
 	int i, j, ic, ns;
 	double ein, es, ek, rgas1, RT;
-	double getenergy(double qs[], double t);
 	double getes(int ns, double t);
 	double getrgas(double qs[]);
 
 	rgas1 = (ru/config2.molWeight)/rgasRef;
 
 	for(i=i1; i<in; i++)
+	{
 		for(j=j1; j<jn; j++)
 		{
 			ic = i*config1.nj + j;
@@ -140,7 +127,9 @@ void assigncells(int i1, int in, int j1, int jn, double u,
 				U.q[ic][0] = p/(rgas1*t);
 			}
 		}
+	}
 }
+
 /*-----------------------------------------------------------
  * Import the former solution.
  * ---------------------------------------------------------*/
@@ -236,7 +225,7 @@ void importjob()
 		}
 	}
 
-	MPI_Barrier(MPI_COMM_WORLD);
+	// MPI_Barrier(MPI_COMM_WORLD);
 
 	/*----3. Each processor read the solution file----*/
     sprintf(filename, "tcv%d.dat", MyID);
@@ -332,13 +321,10 @@ void nondimen()
 		{
 			rhoRef  = preRef/(rgas0*temRef);
 			config2.Re0 = rhoRef*uRef*LRef/muRef;
-			if(MyID == 0)
-			{
-				outId = fopen("outInfo.dat", "a");
-				fprintf(outId, "Reynolds number is recalculated by reference condition: \n");
-				fprintf(outId,"Re = %lf: \n",config2.Re0);
-				fclose(outId);
-			}
+			outId = fopen("outInfo.dat", "a");
+			fprintf(outId, "Reynolds number is recalculated by reference condition: \n");
+			fprintf(outId,"Re = %lf: \n",config2.Re0);
+			fclose(outId);
 		}
 		else
 		{
@@ -347,13 +333,10 @@ void nondimen()
 			 * which means the input "config2.preRef" is unused */
 			rhoRef  = muRef*config2.Re0/(uRef*LRef);
 			preRef  = rhoRef*rgasRef*temRef;
-			if(MyID == 0)
-			{
-				outId = fopen("outInfo.dat", "a");
-				fprintf(outId, "Under the given Reynolds number, the reference pressure is: \n");
-				fprintf(outId,"P = %lf: (N/m^2)\n", preRef);
-				fclose(outId);
-			}
+			outId = fopen("outInfo.dat", "a");
+			fprintf(outId, "Under the given Reynolds number, the reference pressure is: \n");
+			fprintf(outId,"P = %lf: (N/m^2)\n", preRef);
+			fclose(outId);
 		}
 		diffRef = muRef/(rhoRef*config2.Sc0);
 		Upsilon = 1./(config2.gam0*config2.MaRef*config2.MaRef);
@@ -372,7 +355,7 @@ void nondimen()
 		condRef = 1.;
 		Upsilon = 1.;
 		diffRef = 1.;
-		if((MyID==0) && (config1.nonDi!=0))
+		if(config1.nonDi!=0)
 		{
 			outId = fopen("outInfo.dat", "a");
 			fprintf(outId, "the velocity for the dt via CFL number is calculated by: \n");
@@ -470,7 +453,6 @@ void setGeom()
 	            syex = xiy * etx;
 	            syey = xiy * ety;
 
-
 	            Uv.gu1[ic] = (syey + 4./3.*sxex) * yas;
 	            Uv.gu2[ic] = (eyey + 4./3.*exex) * yas;
 	            Uv.gu3[ic] = (sxey - 2./3.*syex) * yas;
@@ -485,6 +467,7 @@ void setGeom()
 	    }
 	}
 }
+
 /*---------------------------------------------------
  * allocate memory for U vector
  * ------------------------------------------------*/
@@ -559,6 +542,15 @@ void allocateUv()
 		Uv.v_et = (double*)malloc(sizeof(double)*nlen);
 		Uv.T_xi = (double*)malloc(sizeof(double)*nlen);
 		Uv.T_et = (double*)malloc(sizeof(double)*nlen);
+		for (int i = 0; i < nlen; i++)
+		{
+			Uv.u_xi[i] = 0;
+			Uv.u_et[i] = 0;
+			Uv.v_xi[i] = 0;
+			Uv.v_et[i] = 0;
+			Uv.T_xi[i] = 0;
+			Uv.T_et[i] = 0;
+		}
 		if(config1.gasModel == 0)
 		{
 			Uv.qs_xi = NULL;

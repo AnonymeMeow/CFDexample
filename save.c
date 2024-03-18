@@ -54,7 +54,7 @@ void saveData(int step)
  * ------------------------------------------------*/
 void postprocess(int istep)
 {
-	int i, j, ic, nc, ns, id, mni, ni, nj, nproc, dum0;
+	int i, j, ic, nc, ns, id, mni;
 	double x, y, rho, u, v, p, T, e, dum;
 	char filename[50];
 	FILE  *fp;
@@ -64,19 +64,9 @@ void postprocess(int istep)
 	} Up;
 	void endjob();
 
-	 /*--------1. read the grid information--------*/
-	fp    = fopen("gridset.dat", "r");
-	if(fp == NULL)
-	{
-		printf("gridset.dat file not found \n");
-		endjob();
-	}
-	fscanf(fp, "%d %d %d %d", &ni, &nj, &dum0, &nproc);
-	fclose(fp);
-
 	 /*--------2. allocate memory--------*/
-	mni = nproc*ni;
-	nc  = mni*nj;
+	mni = nproc*config1.ni;
+	nc  = mni*config1.nj;
 	Up.rho    = (double*)malloc(sizeof(double)*nc);
 	Up.u      = (double*)malloc(sizeof(double)*nc);
 	Up.v      = (double*)malloc(sizeof(double)*nc);
@@ -106,10 +96,10 @@ void postprocess(int istep)
     		exit(0);
     	}
 
-		for(j=0; j<nj; j++) // without ghost cells
-			for(i=0; i<ni; i++)
+		for(j=0; j<config1.nj; j++) // without ghost cells
+			for(i=0; i<config1.ni; i++)
 			{
-				ic = (id*ni + i)*nj + j;
+				ic = (id*config1.ni + i)*config1.nj + j;
 				fscanf(fp," %lf %lf %lf %lf %lf %lf %lf %lf",&dum, &dum,
 						&Up.rho[ic],&Up.u[ic],&Up.v[ic],&Up.p[ic],&Up.t[ic],&Up.e[ic]);
 				if(config1.gasModel != 0)
@@ -135,12 +125,12 @@ void postprocess(int istep)
 			fprintf(fp, ", %s", spname[ns]);
 	}
 	fprintf(fp, "\n");
-    fprintf(fp,"ZONE T='1', I= %d, J= %d, f=point \n", mni, nj);
+    fprintf(fp,"ZONE T='1', I= %d, J= %d, f=point \n", mni, config1.nj);
 
-	for(j=0; j<nj; j++)
+	for(j=0; j<config1.nj; j++)
 		for(i=0; i<mni; i++)
 		{
-    		ic = i*nj + j;
+    		ic = i*config1.nj + j;
     		x = mesh.x[ic];
     		y = mesh.y[ic];
 

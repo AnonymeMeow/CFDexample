@@ -5,12 +5,9 @@
  *
  */
 
-#define MSMPI_NO_DEPRECATE_20
-
 #include <ctype.h>
 #include <string.h>
 #include <math.h>
-#include <mpi.h>
 #include"comm.h"
 #include"chemdata.h"
 
@@ -22,21 +19,14 @@ void readjob()
 	void cheminput();
 	void readconfig();
 	void readic();
-	void readmesh();
-	void BcastData();
 
 	neqv = 4; // solution variables without chemical terms
 
-	// if(MyID == 0)
-	// {
-		readconfig();
-		if(config1.gasModel != 0)
-			cheminput();
-	// }
+	readconfig();
+	if(config1.gasModel != 0)
+		cheminput();
 
-	// BcastData();
 	readic();
-	readmesh();
 }
 
 /*---------------------------------------------------
@@ -72,19 +62,9 @@ void readconfig()
 			{printf("format error in config.dat\n");exit(0);}
 	fclose(fp);
 
-	fp = fopen("gridset.dat", "r");
-	if(fp == NULL){printf("gridset.dat file not found \n");exit(0);}
-	if(fscanf(fp, "%d %d %d %d", &config1.ni, &config1.nj,  &config1.Ng, &config1.nblock) != 4)
-			 {printf("format error in gridset.dat\n");exit(0);}
-	if(fscanf(fp, "%lf %lf", &config2.Lx, &config2.Ly) != 2)
-			 {printf("format error in gridset.dat\n");exit(0);}
-	fclose(fp);
-
-	nproc = config1.nblock;
-
 	fprintf(outId, "\n/---------------------------configure data---------------------------/\n");
 	fprintf(outId, "\nt0=%lf, x0=%lf, Lx=%lf, Ly=%lf\n", config2.t0, config2.x0, config2.Lx, config2.Ly);
-	fprintf(outId, "\ngrids point: ni=%d, nj=%d, ghost cells Ng=%d, nblock=%d\n", config1.ni, config1.nj, config1.Ng, config1.nblock);
+	fprintf(outId, "\ngrids point: ni=%d, nj=%d, ghost cells Ng=%d, nproc=%d\n", config1.ni, config1.nj, config1.Ng, nproc);
 	fprintf(outId, "\nnewrun=%d, nonDi=%d, useDt=%d, \niStep0=%d, nStep=%d, nRamp=%d, Samples=%d, ifilm=%d \n",
 			        config1.newrun, config1.nonDi, config1.useDt, config1.iStep0, config1.nStep,
 			        config1.nRamp, config1.Samples, config1.ifilm);
@@ -130,99 +110,6 @@ void readic()
 	}
 }
 
-/*---------------------------------------------------
- * read mesh data
- * ------------------------------------------------*/
-void readmesh()
-{
-	int i, j, ic,nc, mni;
-	char linebuf[200], filename[20];
-	FILE  *fp, *outId;
-
-	/*---1. Grid information---*/
-	I0 = config1.ni + 2*config1.Ng;
-	J0 = config1.nj + 2*config1.Ng;
-	nc = I0*J0;
-
-	/*---2. Allocate memory---*/
-	mesh.xi   = (double*)malloc(sizeof(double)*nc);
-	mesh.et   = (double*)malloc(sizeof(double)*nc);
-	mesh.x_xi = (double*)malloc(sizeof(double)*nc);
-	mesh.x_et = (double*)malloc(sizeof(double)*nc);
-	mesh.y_xi = (double*)malloc(sizeof(double)*nc);
-	mesh.y_et = (double*)malloc(sizeof(double)*nc);
-	mesh.yaks = (double*)malloc(sizeof(double)*nc);
-
-	sprintf(filename, "set%d.dat", MyID);
-	fp = fopen(filename,"r");
-	if(fp == NULL)
-	{
-		printf("grid file set%d.dat not found! \n", MyID);
-		exit(11);
-	}
-
-	fgets(linebuf, sizeof(linebuf), fp);
-	fgets(linebuf, sizeof(linebuf), fp);
-	fgets(linebuf, sizeof(linebuf), fp); // skip the title
-
-	/*---3. Read the grids---*/
-	for(j=0; j<J0; j++)
-		for(i=0; i<I0; i++)
-		{
-			ic = i*J0 + j;
-			if(fscanf(fp," %lf %lf %lf %lf %lf %lf %lf",
-				  &mesh.xi[ic], &mesh.et[ic], &mesh.x_xi[ic], &mesh.x_et[ic],
-				  &mesh.y_xi[ic], &mesh.y_et[ic], &mesh.yaks[ic]) != 7)
-			{
-				printf("format error in grid file set%d.dat! \n", MyID);
-				exit(12);
-			}
-		}
-	fclose(fp);
-	
-	/* After coordinate transformation,
-	 * the distance between cells are equal */
-	dxc = mesh.xi[1*J0] - mesh.xi[0*J0];
-	dyc = mesh.et[1]    - mesh.et[0];
-
-	/*---4. Read the physical mesh---*/
-
-	if(MyID == 0)
-	{
-		outId = fopen("outInfo.dat", "a");
-
-	    mni = nproc*config1.ni;
-		nc = config1.nj*mni;
-		mesh.x = (double*)malloc(sizeof(double)*nc);
-		mesh.y = (double*)malloc(sizeof(double)*nc);
-
-		fp = fopen("mesh.dat","r");
-		if(fp == NULL)
-		{
-			printf("mesh file mesh.dat not found! \n");
-			exit(13);
-		}
-		fgets(linebuf, sizeof (linebuf), fp);
-		fgets(linebuf, sizeof (linebuf), fp);
-		fgets(linebuf, sizeof (linebuf), fp); // skip the title
-		
-		for(j=0; j<config1.nj; j++)
-			for(i=0; i<mni; i++)
-			{
-		    	ic = i*config1.nj + j;
-		    	if(fscanf(fp," %lf  %lf",&mesh.x[ic], &mesh.y[ic])!= 2)
-		    	{
-					printf("format error in mesh file! \n");
-					exit(14);
-		    	}
-			}
-
-	    fclose(fp);
-		fprintf(outId,"\nRead grid data complete!\n");
-		fprintf(outId,"\n/---------------------runtime information---------------------/\n");
-		fclose(outId);
-	}
-}
 /*---------------------------------------------------
  * read chemical and thermal data
  * ------------------------------------------------*/
@@ -880,47 +767,4 @@ void DBconvert(char *str, int ilen, char *temp, double coef)
 	}
 
 	temp = trim(temp);
-}
-
-/*---------------------------------------------------
- * tell other tasks the thermal-chemical data
- * ------------------------------------------------*/
-void BcastData()
-{
-	int count1, count2, block[2];
-
-	MPI_Aint offset[2], extent;
-	MPI_Datatype reacDatatype, specDatatype, oldtype[2];
-
-	/*-----------Broadcast configuration data-----------*/
-	count1 = sizeof(config1)/sizeof(int);
-	count2 = sizeof(config2)/sizeof(double);
-	MPI_Bcast(&config1, count1, MPI_INT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(&config2, count2, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-
-	/*-----------Broadcast thermo-chemical data-----------*/
-
-	offset[0] = 0;
-	oldtype[0] = MPI_INT;
-	block[0] = 2;
-	MPI_Type_extent(MPI_INT, &extent);
-	offset[1] = 2 * extent;
-	oldtype[1] = MPI_DOUBLE;
-	block[1] = (sizeof(specData[0])-block[0])/sizeof(double);
-	MPI_Type_struct(2, block, offset, oldtype, &specDatatype);
-
-	offset[0] = 0;
-	oldtype[0] = MPI_INT;
-	block[0] = 2;
-	MPI_Type_extent(MPI_INT, &extent);
-	offset[1] = 2 * extent;
-	oldtype[1] = MPI_DOUBLE;
-	block[1] = (sizeof(reacData[0])-block[0])/sizeof(double);
-	MPI_Type_struct(2, block, offset, oldtype, &reacDatatype);
-
-	MPI_Type_commit(&reacDatatype);
-	MPI_Type_commit(&specDatatype);
-
-	MPI_Bcast(reacData, maxreac, reacDatatype, 0, MPI_COMM_WORLD);
-	MPI_Bcast(specData, maxspec, specDatatype, 0, MPI_COMM_WORLD);
 }
