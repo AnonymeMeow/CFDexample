@@ -131,8 +131,9 @@ void postprocess(int istep)
 		for(i=0; i<mni; i++)
 		{
     		ic = i*config1.nj + j;
-    		x = mesh.x[ic];
-    		y = mesh.y[ic];
+			int ic1 = (i + config1.Ng) * J0 + j + config1.Ng;
+    		x = mesh.x[ic1];
+    		y = mesh.y[ic1];
 
     		rho = Up.rho[ic];
     		u   = Up.u[ic];

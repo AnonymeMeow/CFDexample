@@ -86,7 +86,7 @@ void boundX()
 	}
 
 	/* right side */
-	if(MyID == NMAXproc)
+	if(MyID == nproc)
 	{
 		ii = ir -1;  //N+2, N+1, N ->  N+3,N+4,N+5
 		for(i=ir; i<I0; i++)

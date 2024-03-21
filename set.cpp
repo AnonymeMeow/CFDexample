@@ -13,31 +13,26 @@
  * ------------------------------------------------*/
 void setjob()
 {
-	int nc, nc1;
-
 	void initjob();
 	void importjob();
 	void nondimen();
 	void setGeom();
 
 	void allocateU(int nlen, struct strct_U *U);
-	void allocateUv();
-	void allocateU1d(int);
-	void allocateOthers();
+	void allocateUv(int);
 
 	if(config1.gasModel == 0)
 		neqn = neqv;
 	else
 		neqn = neqv + config1.nspec -1;
 
-	nc  = config1.ni*config1.nj;
-	nc1 = I0*J0;
+	int mni = config1.ni * nproc;
+	int nc = mni * config1.nj;
+	int nc1 = (mni + 2 * config1.Ng) * J0;
 
 	allocateU(nc, &U);
 	allocateU(nc1, &Ug);
-	allocateUv();
-	allocateU1d(MAX(I0, J0));
-	allocateOthers();
+	allocateUv(nc1);
 
 	nondimen();
 
@@ -54,24 +49,24 @@ void setjob()
  * ------------------------------------------------*/
 void initjob()
 {
-	int i, mni, ic, icp;
-	double dis;
 	void assigncells(int i1, int in, int j1, int jn, double u,
 			         double v, double t, double p, double *qs);
 
 	config2.t0 = 0;
 	config1.iStep0 = 1;
 
-	mni = nproc*config1.ni;
-	dis = config2.x0*config2.Lx;
-	for(i=0; i<mni; i++)
+	int mnir = config1.ni * nproc + config1.Ng;
+	double dis = config2.x0 * config2.Lx;
+	for (int i = 0; i < mnir; i++)
 	{
-		ic = i*config1.nj + 0;
-		icp = (i+1)*config1.nj + 0;
-		if((mesh.x[ic]<=dis) && (dis<mesh.x[icp]))
+		int ic = i * J0 + 0;
+		int icp = ic + J0;
+		if ((mesh.x[ic] <= dis) && (dis < mesh.x[icp]))
+		{
+			config1.x_sh = i;
 			break;
+		}
 	}
-	config1.x_sh = i;
 
 	// MPI_Bcast(&config1.x_sh, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
@@ -506,12 +501,8 @@ void allocateU(int nlen, struct strct_U *U)
 /*---------------------------------------------------
  * allocate memory for derivatives
  * ------------------------------------------------*/
-void allocateUv()
+void allocateUv(int nlen)
 {
-	int i, nlen;
-
-	nlen = I0*J0;
-
 	if(config1.visModel != 0)
 	{
 		// allocate geometry derivatives coefficients
@@ -560,7 +551,7 @@ void allocateUv()
 		{
 			Uv.qs_xi = (double**)malloc(sizeof(double*)*nlen);
 			Uv.qs_et = (double**)malloc(sizeof(double*)*nlen);
-			for(i=0; i<nlen; i++)
+			for(int i = 0; i < nlen; i++)
 			{
 				Uv.qs_xi[i] = (double*)malloc(sizeof(double)*config1.nspec);
 				Uv.qs_et[i] = (double*)malloc(sizeof(double)*config1.nspec);

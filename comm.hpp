@@ -22,7 +22,8 @@
 #define SCARF_DECLSPEC extern
 #endif
 
-SCARF_DECLSPEC int neqn, nproc, MyID;
+SCARF_DECLSPEC int neqn, nproc;
+SCARF_DECLSPEC thread_local int MyID;
 SCARF_DECLSPEC int I0; // Number of cells in x direction for each thread, including ghost cells
 SCARF_DECLSPEC int J0; // Number of cells in y direction, including ghost cells
 SCARF_DECLSPEC int neqv; // Solution variables without chemical terms
@@ -69,7 +70,6 @@ SCARF_DECLSPEC double LRef, uRef, cvRef, rhoRef, tRef, temRef, preRef,
        rgasRef, muRef, condRef, diffRef, Upsilon;
 
 /*- MPI related -*/
-SCARF_DECLSPEC int dest, ierr, nachbar_rechts, nachbar_links, NMAXproc;
 SCARF_DECLSPEC struct strct_gcelltype
 {
 	double rho, u, v, e, p, t, mu, kt, ga, qs[6], di[6];
@@ -101,7 +101,7 @@ SCARF_DECLSPEC struct strct_Uv
 } Uv;
 
 /*- flux related variables -*/
-SCARF_DECLSPEC struct strct_flux
+SCARF_DECLSPEC thread_local struct strct_flux
 {
 	double *xix, *xiy, *etx, *ety, *yas, *rho,
 		*du, *dv, *dt, **dqs,
@@ -129,10 +129,10 @@ SCARF_DECLSPEC struct strct_metric
 } mesh;
 
 /*- others -*/
-SCARF_DECLSPEC double **qso, ***dsdq;
-SCARF_DECLSPEC double** qo; // (rho, u, v, e) value from the last step
-SCARF_DECLSPEC double** rhs; // The increment value of (rho, u, v, e)
+SCARF_DECLSPEC thread_local double **qso, ***dsdq;
+SCARF_DECLSPEC thread_local double** qo; // (rho, u, v, e) value from the last step
+SCARF_DECLSPEC thread_local double** rhs; // The increment value of (rho, u, v, e)
 
-SCARF_DECLSPEC double **dmat1, **sour, **dtdq;
+SCARF_DECLSPEC thread_local double **dmat1, **sour, **dtdq;
 
 #endif /* COMM_H_ */

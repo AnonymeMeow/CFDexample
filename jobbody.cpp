@@ -8,18 +8,22 @@
 
 #include<string.h>
 #include<math.h>
+
+#include<chrono>
+#include<thread>
+
 #include"comm.hpp"
+
 /*---------------------------------------------------
  * The main loop for the simulation
  * ------------------------------------------------*/
 void jobbody()
 {
 	int ic, ik, iv, nc, ns, iStep;
-	double sum_t, dtc, Ttot, time_begin, time_cpu;
+	double sum_t, dtc, Ttot;
 	FILE *outId;
 
 	void RKtvd3(int ik, double dt);
-	// void mpiConfig();
 	void gettherm(int nc, double **q, double **qs, double *p,
 			      double *t, double *gam1, double *rgas1, double *cv1);
 	// void mpiSendrecv();
@@ -30,70 +34,89 @@ void jobbody()
 	void saveData(int step);
 	void postprocess(int step);
 	double getdt(int step);
+	void allocateU1d(int);
+	void allocateOthers();
 
-	// mpiConfig();
-	// time_begin = MPI_Wtime();
+	auto time_begin = std::chrono::steady_clock::now();
 	outId = fopen("outInfo.dat", "a");
 
 	nc = config1.ni*config1.nj;
 	sum_t = 0.;
 
-	gettherm(nc, U.q, U.qs, U.pre, U.tem, U.gam, U.rgas, U.cv);
-	gettrans(nc, U.qs, U.tem, U.gam, U.cv, U.mu, U.kt, U.di);
-	for(iStep = config1.iStep0; iStep <= config1.nStep; iStep++)
+	std::thread *threads = new std::thread[nproc];
+
+	for (int i = 0; i < nproc; i++)
 	{
-		for(ic = 0; ic<nc; ic++)
-		{
-			for(iv = 0; iv<neqv; iv++)
-				qo[ic][iv] = U.q[ic][iv];
+		threads[i] = std::thread(
+			[&]() {
+				MyID = i;
+				allocateU1d(MAX(I0, J0));
+				allocateOthers();
 
-			if(config1.gasModel != 0)
-				for(ns = 0; ns<config1.nspec; ns++)
-					qso[ic][ns] = U.qs[ic][ns];
-		}
+				gettherm(nc, U.q, U.qs, U.pre, U.tem, U.gam, U.rgas, U.cv);
+				gettrans(nc, U.qs, U.tem, U.gam, U.cv, U.mu, U.kt, U.di);
+				for(iStep = config1.iStep0; iStep <= config1.nStep; iStep++)
+				{
+					for(ic = 0; ic<nc; ic++)
+					{
+						for(iv = 0; iv<neqv; iv++)
+							qo[ic][iv] = U.q[ic][iv];
 
-		dtc = getdt(iStep);
+						if(config1.gasModel != 0)
+							for(ns = 0; ns<config1.nspec; ns++)
+								qso[ic][ns] = U.qs[ic][ns];
+					}
 
-		for(ik=0; ik<config1.timeOrder; ik++)
-		{
-			// mpiSendrecv();
-			RKtvd3(ik, dtc);
-			gettherm(nc, U.q, U.qs, U.pre, U.tem, U.gam, U.rgas, U.cv);
-			gettrans(nc, U.qs, U.tem, U.gam, U.cv, U.mu, U.kt, U.di);
-			boundX();
-			boundY();
-		}
+					dtc = getdt(iStep);
 
-		if(MyID == 0)
-		{
-			sum_t = sum_t + dtc;
-			if(iStep%100 == 0)
-			{
-				// run on the cluster platform, output all the information to a file.
-				fprintf(outId, "iStep: %d / total: %d\n",iStep, config1.nStep);
-				fflush(outId);
+					for(ik=0; ik<config1.timeOrder; ik++)
+					{
+						// mpiSendrecv();
+						RKtvd3(ik, dtc);
+						gettherm(nc, U.q, U.qs, U.pre, U.tem, U.gam, U.rgas, U.cv);
+						gettrans(nc, U.qs, U.tem, U.gam, U.cv, U.mu, U.kt, U.di);
+						boundX();
+						boundY();
+					}
 
-				// run on the local computer, monitor output on the screen.
-				//printf("iStep: %d / total: %d\n", iStep, config1.nStep);
+					if(MyID == 0)
+					{
+						sum_t = sum_t + dtc;
+						if(iStep%100 == 0)
+						{
+							// run on the cluster platform, output all the information to a file.
+							fprintf(outId, "iStep: %d / total: %d\n",iStep, config1.nStep);
+							fflush(outId);
+
+							// run on the local computer, monitor output on the screen.
+							//printf("iStep: %d / total: %d\n", iStep, config1.nStep);
+						}
+					}
+
+					if(iStep%config1.Samples == 0)
+					{
+						saveData(iStep);
+
+						// MPI_Barrier(MPI_COMM_WORLD);
+
+						if((MyID==0) && (iStep%config1.ifilm==0))
+						{
+							auto time_cpu = std::chrono::steady_clock::now() - time_begin;
+							Ttot = config2.t0 + sum_t*tRef;
+
+							printf("output flow field result, flow_time = %e s.\n", Ttot);
+							fprintf(outId, "istep = %d, flow_time = %e s, cpu_time = %e s\n", iStep, Ttot, time_cpu.count() / 1e9);
+							postprocess(iStep);
+						}
+					}
+				}
 			}
-		}
+		);
+	}
 
-		if(iStep%config1.Samples == 0)
-		{
-			saveData(iStep);
-
-			// MPI_Barrier(MPI_COMM_WORLD);
-
-			if((MyID==0) && (iStep%config1.ifilm==0))
-			{
-				// time_cpu = MPI_Wtime() - time_begin;
-				Ttot = config2.t0 + sum_t*tRef;
-
-				printf("output flow field result, flow_time = %e s.\n", Ttot);
-				fprintf(outId, "istep = %d, flow_time = %e s, cpu_time = %e s\n", iStep,Ttot,time_cpu);
-				postprocess(iStep);
-			}
-		}
+	for (int i = 0; i < nproc; i++)
+	{
+		threads[i].join();
 	}
 
 	printf("simulation complete! \n");
@@ -174,23 +197,6 @@ double getdt(int step)
 	}
 	return(dt);
 }
-
-/*---------------------------------------------------
- * MPI configuration
- * ------------------------------------------------*/
-// void mpiConfig()
-// {
-// 	NMAXproc = nproc - 1;
-// 	if(MyID == NMAXproc)
-// 		nachbar_rechts = MPI_PROC_NULL;
-// 	else
-// 		nachbar_rechts = MyID + 1;
-
-// 	if(MyID == 0)
-// 		nachbar_links = MPI_PROC_NULL;
-// 	else
-// 		nachbar_links = MyID - 1;
-// }
 
 /*---------------------------------------------------
  * Conduct MPI send and receive

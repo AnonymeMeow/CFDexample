@@ -513,7 +513,7 @@ void fluxchemF(double **rhs)
 		}
 
 		/*------ Near wall boundary, reduced to up-wind scheme ------*/
-		if(MyID == NMAXproc)
+		if(MyID == nproc)
 		{
 			for(k=0; k<config1.Ng; k++)
 			{

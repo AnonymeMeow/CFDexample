@@ -14,14 +14,13 @@
  * ------------------------------------------------*/
 void endjob()
 {
-	int nc, nc1;
-
 	void freeU(int nlen, struct strct_U *U);
 	void freeUv();
 	void freeOthers();
 
-	nc = config1.ni*config1.nj;
-	nc1 = I0*J0;
+	int mni = config1.ni * nproc;
+	int nc = mni * config1.nj;
+	int nc1 = (mni + 2 * config1.Ng) * J0;
 
 	freeU(nc,  &U);
 	freeU(nc1, &Ug);

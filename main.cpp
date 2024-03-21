@@ -11,40 +11,18 @@
 #include "chemdata.hpp"
 #include "comm.hpp"
 
-extern "C"
-{
-	void grid();
-	void readjob();
-	void setjob();
-	void jobbody();
-	void endjob();
-}
-
-#include <thread>
+void grid();
+void readjob();
+void setjob();
+void jobbody();
+void endjob();
 
 int main(int argc, char *argv[])
 {
 	grid();
 	readjob();
 	setjob();
-
-	std::thread *threads = new std::thread[nproc];
-	for (int i = 0; i < nproc; i++)
-	{
-		threads[i] = std::thread(
-			[&] (int thread_id) {
-				MyID = thread_id;
-				jobbody();
-			},
-			i
-		);
-	}
-
-	for (int i = 0; i < nproc; i++)
-	{
-		threads[i].join();
-	}
-
+	jobbody();
 	endjob();
 
     return 0;

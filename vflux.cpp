@@ -703,7 +703,7 @@ void interpoDY()
 		    }
     	}
     	/* right side, solid Wall */
-    	if(MyID == NMAXproc)
+    	if(MyID == nproc)
     	{
         	ii = ir -1;
         	for(i=ir; i<I0; i++)
