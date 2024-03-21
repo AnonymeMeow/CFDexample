@@ -5,8 +5,8 @@
  *
  */
 #include<math.h>
-#include"comm.h"
-#include"chemdata.h"
+#include"comm.hpp"
+#include"chemdata.hpp"
 
 /*---------------------------------------------------
  * set and initialize the job

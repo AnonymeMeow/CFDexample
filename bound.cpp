@@ -5,7 +5,7 @@
  *
  */
 
-#include"comm.h"
+#include"comm.hpp"
 
 /*---------------------------------------------------
  * Apply boundary condition in i direction

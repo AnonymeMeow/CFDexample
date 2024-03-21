@@ -8,8 +8,8 @@
 #include <ctype.h>
 #include <string.h>
 #include <math.h>
-#include"comm.h"
-#include"chemdata.h"
+#include"comm.hpp"
+#include"chemdata.hpp"
 
 /*---------------------------------------------------
  * read the necessary information for simulation

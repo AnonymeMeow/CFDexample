@@ -8,8 +8,8 @@
 
 #define SCARF_DECLSPEC
 
-#include "chemdata.h"
-#include "comm.h"
+#include "chemdata.hpp"
+#include "comm.hpp"
 
 extern "C"
 {

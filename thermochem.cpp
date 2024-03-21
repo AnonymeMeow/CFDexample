@@ -6,8 +6,8 @@
  */
 #include<string.h>
 #include<math.h>
-#include"comm.h"
-#include"chemdata.h"
+#include"comm.hpp"
+#include"chemdata.hpp"
 
 /*---------------------------------------------------
  * Calculate the thermal properties

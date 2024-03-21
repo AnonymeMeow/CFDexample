@@ -10,7 +10,7 @@
 #include<stdlib.h>
 #include<math.h>
 
-#include "comm.h"
+#include "comm.hpp"
 
 void grid()
 {

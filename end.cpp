@@ -7,7 +7,7 @@
 
 #include<stdio.h>
 #include<stdlib.h>
-#include"comm.h"
+#include"comm.hpp"
 
 /*---------------------------------------------------
  * End the simulation, clear all the space

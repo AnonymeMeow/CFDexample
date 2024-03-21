@@ -8,7 +8,7 @@
 
 #include<string.h>
 #include<math.h>
-#include"comm.h"
+#include"comm.hpp"
 /*---------------------------------------------------
  * The main loop for the simulation
  * ------------------------------------------------*/

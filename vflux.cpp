@@ -7,8 +7,8 @@
 
 #include<string.h>
 #include<math.h>
-#include"comm.h"
-#include"chemdata.h"
+#include"comm.hpp"
+#include"chemdata.hpp"
 
 #define NSPEC_BUFFER 10
 
