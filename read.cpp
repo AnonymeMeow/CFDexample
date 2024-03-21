@@ -27,6 +27,9 @@ void readjob()
 		cheminput();
 
 	readic();
+
+	dxc = mesh.xi[1*J0] - mesh.xi[0*J0];
+	dyc = mesh.et[1]    - mesh.et[0];
 }
 
 /*---------------------------------------------------
@@ -37,7 +40,7 @@ void readconfig()
 	FILE *fp, *outId;
 
 	fp    = fopen("config.dat", "r");
-	outId = fopen("outInfo.dat", "a");
+	outId = fopen("outInfo.dat", "w");
 	if(fp == NULL){printf("config.dat file not found! \n");exit(0);}
 
 	if(fscanf(fp, "%lf %lf", &config2.t0, &config2.x0) != 2)

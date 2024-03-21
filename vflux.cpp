@@ -61,12 +61,14 @@ void vfluxF(double **rhs)
         coef_e  = 1.;
     }
 
+	int Ir = config1.ni + 2 * config1.Ng;
+
     for(j=config1.Ng; j<jr; j++)
     {
-        for(i=0; i<I0; i++)
+        for(i=0; i<Ir; i++)
         {
         	/*---- convert to 1D-array ----*/
-        	ic = i*J0 + j;
+			ic = (i + MyID * config1.ni) * J0 + j;
 
         	U1d.du[i] = Uv.u_xi[ic];
             U1d.dv[i] = Uv.v_xi[ic];
@@ -82,7 +84,7 @@ void vfluxF(double **rhs)
 
     	for(i=il; i<ir; i++)
     	{
-    		ic = i*J0 + j;
+			ic = (i + MyID * config1.ni) * J0 + j;
 
     		for(ivar=0; ivar<nvar; ivar++)
     			fv[ivar] = 0.;
@@ -191,7 +193,7 @@ void vfluxG(double **rhs)
         for(j=0; j<J0; j++)
         {
         	/*---- convert to 1D-array ----*/
-        	ic = i*J0 + j;
+			ic = (i + MyID * config1.ni) * J0 + j;
 
         	U1d.du[j] = Uv.u_xi[ic];
             U1d.dv[j] = Uv.v_xi[ic];
@@ -207,7 +209,7 @@ void vfluxG(double **rhs)
 
     	for(j=jl; j<jr; j++)
     	{
-    		ic  = i*J0 + j;
+			ic = (i + MyID * config1.ni) * J0 + j;
 
     		for(ivar=0; ivar<nvar; ivar++)
     			fv[ivar] = 0.;
@@ -316,12 +318,14 @@ void vfluxchemF(double **rhs)
         coef_rhos = 1.;
     }
 
+	int Ir = config1.ni + 2 * config1.Ng;
+
     for(j=config1.Ng; j<jr; j++)
     {
-		for(i=0; i<I0; i++)
+		for(i=0; i<Ir; i++)
 		{
 			/*---- convert to 1D-array ----*/
-			ic = i*J0 + j;
+			ic = (i + MyID * config1.ni) * J0 + j;
 
 			U1d.du[i] = Uv.u_et[ic];
 			U1d.dv[i] = Uv.v_et[ic];
@@ -344,7 +348,7 @@ void vfluxchemF(double **rhs)
 		 /*---------- 1. get the face value ----------*/
     	for(i=il; i<ir; i++)
     	{
-    		ic = i*J0 + j;
+			ic = (i + MyID * config1.ni) * J0 + j;
 
     		for(ivar=0; ivar<nvar; ivar++)
     			fv[ivar] = 0.0;
@@ -488,7 +492,7 @@ void vfluxchemG(double **rhs)
 		for(j=0; j<J0; j++)
 		{
 			/*---- convert to 1D-array ----*/
-			ic = i*J0 + j;
+			ic = (i + MyID * config1.ni) * J0 + j;
 
 			U1d.du[j] = Uv.u_xi[ic];
 			U1d.dv[j] = Uv.v_xi[ic];
@@ -511,7 +515,7 @@ void vfluxchemG(double **rhs)
         /*---------- 1. get the face value ----------*/
     	for(j=jl; j<jr; j++)
     	{
-    		ic = i*J0 + j;
+			ic = (i + MyID * config1.ni) * J0 + j;
 
     		for(ivar=0; ivar<nvar; ivar++)
     			fv[ivar] = 0.0;
@@ -613,7 +617,7 @@ void interpoDY()
     {
 		for(j=config1.Ng; j<jr; j++)
     	{
-    		ic = i*J0 + j;
+			ic = (i + MyID * config1.ni) * J0 + j;
     		ujr = 0.;
     		vjr = 0.;
     		tjr = 0.;
@@ -630,8 +634,8 @@ void interpoDY()
 			for(k=0; k<6; k++)
 			{
 				jj = j - config1.Ng + k;
-				icp = i*J0 + jj+1;
-				icm = i*J0 + jj;
+				icm = (i + MyID * config1.ni) * J0 + jj;
+				icp = icm + 1;
 
 				ujr = ujr + interpo[k]*Ug.q[icp][1];
 				vjr = vjr + interpo[k]*Ug.q[icp][2];
@@ -677,39 +681,15 @@ void interpoDY()
 			    ii -= 1;
 		    }
     	}
-    	else
-    	{
-    		/* MPI boundary */
-    		jj = j - config1.Ng;
-    		for(i=0; i<config1.Ng; i++)
-		    {
-    			ic  = i*J0 + j;
-    			if(jj == config1.nj-1)
-    			{
-    				icm = i*config1.nj + jj-1;
-    				icp = i*config1.nj + jj;
-    			}
-    			else
-    			{
-    				icm = i*config1.nj + jj;
-    				icp = i*config1.nj + jj+1;
-    			}
-		    	Uv.u_et[ic] =  (mpiRecv_ql[icp].u - mpiRecv_ql[icm].u)/dyc;
-		    	Uv.v_et[ic] =  (mpiRecv_ql[icp].v - mpiRecv_ql[icm].v)/dyc;
-		    	Uv.T_et[ic] =  (mpiRecv_ql[icp].t - mpiRecv_ql[icm].t)/dyc;
-				if(config1.gasModel != 0)
-					for(ns=0; ns<config1.nspec; ns++)
-						Uv.qs_et[ic][ns] = (mpiRecv_ql[icp].qs[ns] - mpiRecv_ql[icm].qs[ns])/dyc;
-		    }
-    	}
     	/* right side, solid Wall */
-    	if(MyID == nproc)
+    	if(MyID == nproc - 1)
     	{
-        	ii = ir -1;
-        	for(i=ir; i<I0; i++)
+			ir = config1.ni * nproc + config1.Ng;
+        	ii = ir - 1;
+        	for(i = ir; i < I0; i++)
         	{
-    			ic  = i*J0  + j;
-     		    ic1 = ii*J0 + j;
+    			ic = i * J0 + j;
+     		    ic1 = ii * J0 + j;
 		    	Uv.u_et[ic] = -Uv.u_et[ic1];
 		    	Uv.v_et[ic] = -Uv.v_et[ic1];
 		    	Uv.T_et[ic] =  Uv.T_et[ic1];
@@ -719,35 +699,6 @@ void interpoDY()
 			    ii -= 1;
 		    }
     	}
-    	else
-    	{
-    		/* MPI boundary */
-    		jj = j - config1.Ng;
-    		for(i=0; i<config1.Ng; i++)
-    		{
-    			ii = ir + i;
-
-    			ic = ii*J0 + j;
-
-    			if(jj == config1.nj-1)
-    			{
-    				icm = i*config1.nj + jj-1;
-    				icp = i*config1.nj + jj;
-    			}
-    			else
-    			{
-    				icm = i*config1.nj + jj;
-    				icp = i*config1.nj + jj+1;
-    			}
-    			Uv.u_et[ic] =  (mpiRecv_qr[icp].u - mpiRecv_qr[icm].u)/dyc;
-    			Uv.v_et[ic] =  (mpiRecv_qr[icp].v - mpiRecv_qr[icm].v)/dyc;
-    			Uv.T_et[ic] =  (mpiRecv_qr[icp].t - mpiRecv_qr[icm].t)/dyc;
-    			if(config1.gasModel != 0)
-    				for(ns=0; ns<config1.nspec; ns++)
-    					Uv.qs_et[ic][ns] = (mpiRecv_qr[icp].qs[ns] - mpiRecv_qr[icm].qs[ns])/dyc;
-    			ii -= 1;
-		    }
-		}
     }
 }
 
@@ -769,7 +720,7 @@ void interpoDX()
 	{
 		for(i=config1.Ng; i<ir; i++)
     	{
-    		ic = i*J0 + j;
+			ic = (i + MyID * config1.ni) * J0 + j;
     		uir = 0.;
     		vir = 0.;
     		tir = 0.;
@@ -786,8 +737,8 @@ void interpoDX()
 			for(k=0; k<6; k++)
 			{
 				ii = i - 3 + k;
-				icp = (ii+1)*J0 + j;
-				icm = ii*J0 + j;
+				icm = (ii + MyID * config1.ni) * J0 + j;
+				icp = icm + J0;
 
 				uir = uir + interpo[k]*Ug.q[icp][1];
 				vir = vir + interpo[k]*Ug.q[icp][2];

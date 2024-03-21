@@ -80,10 +80,11 @@ void fluxF(double **rhs)
 
 	for(j=config1.Ng; j<jr; j++)
 	{
+		int I0 = config1.ni + 2 * config1.Ng;
 		for(i=0; i<I0; i++)
 		{
 		/*---- convert to 1D-array ----*/
-			ic = i*J0 + j;
+			ic = (i + MyID * config1.ni) * J0 + j;
 
 			U1d.yas[i] =  mesh.yaks[ic];
 			U1d.xix[i] =  mesh.y_et[ic]/U1d.yas[i];
@@ -241,7 +242,7 @@ void fluxG(double **rhs)
 		for(j=0; j<J0; j++)
 		{
 			/*---- convert to 1D-array ----*/
-			ic = i*J0 + j;
+			ic = (i + MyID * config1.ni) * J0 + j;
 
 			U1d.yas[j] =  mesh.yaks[ic];
 			U1d.etx[j] = -mesh.y_xi[ic]/U1d.yas[j];
@@ -388,10 +389,11 @@ void fluxchemF(double **rhs)
 
 	for(j=config1.Ng; j<jr; j++)
 	{
+		int I0 = config1.ni + 2 * config1.Ng;
 		for(i=0; i<I0; i++)
 		{
 		/*---- convert to 1D-array ----*/
-			ic = i*J0 + j;
+			ic = (i + MyID * config1.ni) * J0 + j;
 
 			U1d.yas[i] =  mesh.yaks[ic];
 			U1d.xix[i] =  mesh.y_et[ic]/mesh.yaks[ic];
@@ -513,7 +515,7 @@ void fluxchemF(double **rhs)
 		}
 
 		/*------ Near wall boundary, reduced to up-wind scheme ------*/
-		if(MyID == nproc)
+		if(MyID == nproc - 1)
 		{
 			for(k=0; k<config1.Ng; k++)
 			{
@@ -600,7 +602,7 @@ void fluxchemG(double **rhs)
 		for(j=0; j<J0; j++)
 		{
 			/*---- convert to 1D-array ----*/
-			ic = i*J0 + j;
+			ic = (i + MyID * config1.ni) * J0 + j;
 
 			U1d.yas[j] =  mesh.yaks[ic];
 			U1d.etx[j] = -mesh.y_xi[ic]/U1d.yas[j];
@@ -735,13 +737,10 @@ void adGhost()
 
 	for(i = 0; i<config1.ni; i++)
 	{
-		ii = i + config1.Ng;
+		ic = (i + MyID * config1.ni) * config1.nj;
+		ic1 = (i + MyID * config1.ni + config1.Ng) * J0 + config1.Ng;
 		for(j = 0; j<config1.nj; j++)
 		{
-			jj = j + config1.Ng;
-			ic = i*config1.nj + j;
-			ic1 = ii*J0 + jj;
-
     		Ug.q[ic1][0] =  U.q[ic][0];
     		Ug.q[ic1][1] =  U.q[ic][1];
     		Ug.q[ic1][2] =  U.q[ic][2];
@@ -758,8 +757,12 @@ void adGhost()
         	Ug.rgas[ic1]=  U.rgas[ic];
     		Ug.mu[ic1]  =  U.mu[ic];
     		Ug.kt[ic1]  =  U.kt[ic];
+
+			ic++;
+			ic1++;
 		}
 	}
+	sync();
 }
 /*---------------------------------------------------
  * Calculate the Phi function of WENO scheme

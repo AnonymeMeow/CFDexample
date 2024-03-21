@@ -13,7 +13,6 @@
 
 /*- constant & func. -*/
 #define maxeqn 9
-#define mpicell 3000 // Number of exchange cells for MPI
 #define ru 8.3141
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
 #define MAX(a,b) (((a) > (b)) ? (a) : (b))
@@ -68,12 +67,6 @@ SCARF_DECLSPEC struct strct_configDouble
 /*- reference state -*/
 SCARF_DECLSPEC double LRef, uRef, cvRef, rhoRef, tRef, temRef, preRef,
        rgasRef, muRef, condRef, diffRef, Upsilon;
-
-/*- MPI related -*/
-SCARF_DECLSPEC struct strct_gcelltype
-{
-	double rho, u, v, e, p, t, mu, kt, ga, qs[6], di[6];
-}mpiSend_ql[mpicell], mpiSend_qr[mpicell], mpiRecv_ql[mpicell], mpiRecv_qr[mpicell];
 
 /*- Origin flow variables -*/
 SCARF_DECLSPEC struct strct_U
@@ -134,5 +127,12 @@ SCARF_DECLSPEC thread_local double** qo; // (rho, u, v, e) value from the last s
 SCARF_DECLSPEC thread_local double** rhs; // The increment value of (rho, u, v, e)
 
 SCARF_DECLSPEC thread_local double **dmat1, **sour, **dtdq;
+
+#include<condition_variable>
+
+SCARF_DECLSPEC std::mutex mutex;
+SCARF_DECLSPEC std::condition_variable conditional;
+
+void sync();
 
 #endif /* COMM_H_ */

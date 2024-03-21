@@ -68,12 +68,8 @@ void initjob()
 		}
 	}
 
-	// MPI_Bcast(&config1.x_sh, 1, MPI_INT, 0, MPI_COMM_WORLD);
-
 	assigncells(0, config1.x_sh, 0, config1.nj, inc[0].u, inc[0].v, inc[0].t, inc[0].p, inc[0].ys);
-	assigncells(config1.x_sh, config1.ni, 0, config1.nj, inc[1].u, inc[1].v, inc[1].t, inc[1].p, inc[1].ys);
-
-	// MPI_Barrier(MPI_COMM_WORLD);
+	assigncells(config1.x_sh, mnir - config1.Ng, 0, config1.nj, inc[1].u, inc[1].v, inc[1].t, inc[1].p, inc[1].ys);
 }
 
 /*-----------------------------------------------------------
@@ -219,8 +215,6 @@ void importjob()
 			fclose(fp);
 		}
 	}
-
-	// MPI_Barrier(MPI_COMM_WORLD);
 
 	/*----3. Each processor read the solution file----*/
     sprintf(filename, "tcv%d.dat", MyID);
@@ -373,7 +367,7 @@ void setGeom()
 	{
 	   	il = config1.Ng - 1;
 		jl = config1.Ng - 1;
-		ir = config1.ni + config1.Ng;
+		ir = config1.ni * nproc + config1.Ng;
 		jr = config1.nj + config1.Ng;
 
 	    for(j=config1.Ng; j<jr; j++)

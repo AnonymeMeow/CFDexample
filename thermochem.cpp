@@ -34,7 +34,7 @@ void gettherm(int nc, double **q, double **qs, double *p,
 	{
 		/*-- for calorically perfect gas--*/
 		rgas0 = (ru/config2.molWeight);
-		for(ic=0; ic<nc; ic++)
+		for (ic = MyID * nc; ic < (MyID + 1) * nc; ic++)
 		{
 			temp = 0.5*(q[ic][1]*q[ic][1] + q[ic][2]*q[ic][2]);
 			rgas1[ic] = rgas0/rgasRef;
@@ -46,11 +46,11 @@ void gettherm(int nc, double **q, double **qs, double *p,
 			if( !(tem_min<tem && tem<tem_max))
 			{
 				outId = fopen("outInfo.dat", "a");
-				fprintf(outId, "T = %f (K) at at i=%d, j=%d\n", tem, ic/config1.nj, ic%config1.nj);
-				fclose(outId);
-				printf("T = %f (K) at at i=%d, j=%d\n", tem, ic/config1.nj, ic%config1.nj);
-				printf("The temperature may be unphysical for ideal gas model \n");
-				exit(41);
+			fprintf(outId, "T = %f (K) at at i=%d, j=%d\n", tem, ic/config1.nj, ic%config1.nj);
+			fclose(outId);
+			printf("T = %f (K) at at i=%d, j=%d\n", tem, ic/config1.nj, ic%config1.nj);
+			printf("The temperature may be unphysical for ideal gas model \n");
+			exit(41);
 			}
 		}
 	}
@@ -69,7 +69,7 @@ void gettherm(int nc, double **q, double **qs, double *p,
 		{
 		case 0 : // NASA_glenn database
 			{
-				for(ic = 0; ic<nc; ic++)
+				for (ic = MyID * nc; ic < (MyID + 1) * nc; ic++)
 				{
 					/*--recover dimension--*/
 					tem = t[ic]*temRef;
@@ -323,7 +323,7 @@ void gettrans(int nc, double **qs, double *t, double *gam1,
 			ratio2  = (config2.suthC1 + config2.suthC2)/(config2.temRef+ config2.suthC2);
 			dum1  = config2.muRef*ratio2*pow(ratio1,1.5);
 			dum2  = dum1*cp/config2.Pr0;
-			for(ic=0; ic<nc; ic++)
+			for (ic = MyID * nc; ic < (MyID + 1) * nc; ic++)
 			{
 				mu[ic]   = dum1/muRef;
 				cond[ic] = dum2/condRef;
@@ -332,7 +332,7 @@ void gettrans(int nc, double **qs, double *t, double *gam1,
 		else if(config1.visModel == 2)
 		{
 			/*---------- 1.2 Sutherland's law ----------*/
-			for(ic=0; ic<nc; ic++)
+			for (ic = MyID * nc; ic < (MyID + 1) * nc; ic++)
 			{
 				tem = t[ic]*temRef;
 				cp  = gam1[ic]*(cv1[ic]*cvRef);
@@ -341,7 +341,7 @@ void gettrans(int nc, double **qs, double *t, double *gam1,
 				mu[ic] = config2.muRef*ratio2*pow(ratio1,1.5);
 				cond[ic] = mu[ic]*cp/config2.Pr0;
 			}
-			for(ic=0; ic<nc; ic++)
+			for (ic = MyID * nc; ic < (MyID + 1) * nc; ic++)
 			{
 				mu[ic]   = mu[ic]/muRef;
 				cond[ic] = cond[ic]/condRef;
@@ -369,7 +369,7 @@ void gettrans(int nc, double **qs, double *t, double *gam1,
 		{
 			/*---------- 2.1. Blonner's Curve fit data (for air)----------*/
 
-			for(ic=0; ic<nc; ic++)
+			for (ic = MyID * nc; ic < (MyID + 1) * nc; ic++)
 			{
 				tem = t[ic]*temRef;
 				rho = U.q[ic][0]*rhoRef;
@@ -414,7 +414,7 @@ void gettrans(int nc, double **qs, double *t, double *gam1,
 				//assume all the species have the same diffusion coefficient
 				diff[ic][0] = mu[ic]/(rho*config2.Sc0 + tiny);
 			}
-			for(ic=0; ic<nc; ic++)
+			for (ic = MyID * nc; ic < (MyID + 1) * nc; ic++)
 			{
 				mu[ic]   = mu[ic]/muRef;
 				cond[ic] = cond[ic]/condRef;
@@ -435,7 +435,7 @@ void gettrans(int nc, double **qs, double *t, double *gam1,
 			/*--- 1. viscosity coefficient ---*/
 			tmin = coll.tstar[0];
 			tmax = coll.tstar[81];
-			for(ic=0; ic<nc; ic++)
+			for (ic = MyID * nc; ic < (MyID + 1) * nc; ic++)
 			{
 				tem = t[ic]*temRef;
 				rho = U.q[ic][0]*rhoRef;
@@ -532,7 +532,7 @@ void gettrans(int nc, double **qs, double *t, double *gam1,
 				/*--- 3. conductive coefficient ---*/
 				cond[ic] = mu[ic]*cp/config2.Pr0;
 			}
-			for(ic=0; ic<nc; ic++)
+			for (ic = MyID * nc; ic < (MyID + 1) * nc; ic++)
 			{
 				mu[ic]   = mu[ic]/muRef;
 				cond[ic] = cond[ic]/condRef;
@@ -644,9 +644,10 @@ void chemsource(int nc, double **q, double **qs, double *tem, double **rhs)
     {
 		for(ic = 0; ic<nc; ic++)
 		{
-	    	tem1 = tem[ic]*temRef;
+			int ic1 = ic + MyID * nc;
+	    	tem1 = tem[ic1]*temRef;
 	    	for(ns = 0; ns<m; ns++)
-	    		rhos[ns] = (q[ic][0]*rhoRef)*qs[ic][ns];
+	    		rhos[ns] = (q[ic1][0]*rhoRef)*qs[ic1][ns];
 
 	    	rtem = 1./tem1;
 
@@ -848,7 +849,7 @@ void chemsource(int nc, double **q, double **qs, double *tem, double **rhs)
 			jj  = j + config1.Ng;
 
 			ic  = i*config1.nj + j;
-			ic1 = ii*J0 + jj;
+			ic1 = (ii + MyID * config1.ni) * J0 + jj;
 			yas = mesh.yaks[ic1];
 			for(ns=0; ns<m; ns++)
 				rhs[ic][ns] = rhs[ic][ns] + sour[ic][ns]*yas;
@@ -1006,14 +1007,15 @@ void tem_derivative(double **dtdq)
 
 	for(ic = 0; ic<nc; ic++)
 	{
-    	t   = U.tem[ic];
+		int ic1 = ic + MyID * config1.ni * config1.nj;
+    	t   = U.tem[ic1];
 		for(ns = 0; ns<m; ns++)
 			es[ns] = getes(ns,t)*uRef*uRef;
 
-    	rho = U.q[ic][0]*rhoRef;
-    	u   = U.q[ic][1]*uRef;
-    	v   = U.q[ic][2]*uRef;
-    	cv  = U.cv[ic]*cvRef;
+    	rho = U.q[ic1][0]*rhoRef;
+    	u   = U.q[ic1][1]*uRef;
+    	v   = U.q[ic1][2]*uRef;
+    	cv  = U.cv[ic1]*cvRef;
 
 		rdum = 1./(rho*cv);
 		for(ns = 0; ns<m; ns++)

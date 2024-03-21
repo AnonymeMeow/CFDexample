@@ -17,7 +17,7 @@
  * ------------------------------------------------*/
 void updateq(int nc, double **q, double **rhs, double dt, int idt)
 {
-	int i, j, ii, jj, ic, ic1;
+	int i, j, ii, jj;
 	double rho, rhoU, rhoV, rhoE, rrho, yas;
 	double coef[3][3] = {{1., 3./4., 1./3.}, {0, 1./4., 2./3.},
 							  {1., 1./4., 2./3.}};
@@ -31,24 +31,25 @@ void updateq(int nc, double **q, double **rhs, double dt, int idt)
 		{
 			jj  = j + config1.Ng;
 
-			ic  = i*config1.nj + j;
-			ic1 = ii*J0 + jj;
-			yas = mesh.yaks[ic1];
+			int ic  = i * config1.nj + j;
+			int ic1 = (i + MyID * config1.ni) * config1.nj + j;
+			int ic2 = (ii + MyID * config1.ni) * J0 + jj;
+			yas = mesh.yaks[ic2];
 
-			rho  = q[ic][0];
-			rhoU = q[ic][0]*q[ic][1];
-			rhoV = q[ic][0]*q[ic][2];
-			rhoE = q[ic][0]*q[ic][3];
+			rho  = q[ic1][0];
+			rhoU = q[ic1][0]*q[ic1][1];
+			rhoV = q[ic1][0]*q[ic1][2];
+			rhoE = q[ic1][0]*q[ic1][3];
 
-			q[ic][0] = coef[0][idt]*qo[ic][0]           + coef[1][idt]*rho  + coef[2][idt]*dt*rhs[ic][0]/yas;
-			q[ic][1] = coef[0][idt]*qo[ic][0]*qo[ic][1] + coef[1][idt]*rhoU + coef[2][idt]*dt*rhs[ic][1]/yas;
-			q[ic][2] = coef[0][idt]*qo[ic][0]*qo[ic][2] + coef[1][idt]*rhoV + coef[2][idt]*dt*rhs[ic][2]/yas;
-			q[ic][3] = coef[0][idt]*qo[ic][0]*qo[ic][3] + coef[1][idt]*rhoE + coef[2][idt]*dt*rhs[ic][3]/yas;
+			q[ic1][0] = coef[0][idt]*qo[ic][0]           + coef[1][idt]*rho  + coef[2][idt]*dt*rhs[ic][0]/yas;
+			q[ic1][1] = coef[0][idt]*qo[ic][0]*qo[ic][1] + coef[1][idt]*rhoU + coef[2][idt]*dt*rhs[ic][1]/yas;
+			q[ic1][2] = coef[0][idt]*qo[ic][0]*qo[ic][2] + coef[1][idt]*rhoV + coef[2][idt]*dt*rhs[ic][2]/yas;
+			q[ic1][3] = coef[0][idt]*qo[ic][0]*qo[ic][3] + coef[1][idt]*rhoE + coef[2][idt]*dt*rhs[ic][3]/yas;
 
-			rrho = 1./q[ic][0];
-			q[ic][1] = q[ic][1]*rrho;
-			q[ic][2] = q[ic][2]*rrho;
-			q[ic][3] = q[ic][3]*rrho;
+			rrho = 1./q[ic1][0];
+			q[ic1][1] = q[ic1][1]*rrho;
+			q[ic1][2] = q[ic1][2]*rrho;
+			q[ic1][3] = q[ic1][3]*rrho;
 		}
 	}
 }

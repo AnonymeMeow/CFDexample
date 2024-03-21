@@ -12,9 +12,8 @@
  * ------------------------------------------------*/
 void boundX()
 {
-	int i, ir, j, jr, ii, ns, ic, ic1;
+	int i, j, jr, ii, ns, ic, ic1;
 
-	ir = config1.ni + config1.Ng;
 	jr = config1.nj + config1.Ng;
 
 	/*---- assign MPI boundary ----*/
@@ -58,43 +57,18 @@ void boundX()
 		    ii -= 1;
     	}
 	}
-	else
-	{
-		for(i=0; i<config1.Ng; i++)
-			for(j=0; j<config1.nj; j++)
-		    {
-				ic = i*J0 + (j+config1.Ng); // the left block's N-3->0, N-2->1, N-1->2
-				ic1 = i*config1.nj + j;
-
-				Ug.q[ic][0] = mpiRecv_ql[ic1].rho;
-		    	Ug.q[ic][1] = mpiRecv_ql[ic1].u;
-		    	Ug.q[ic][2] = mpiRecv_ql[ic1].v;
-		    	Ug.q[ic][3] = mpiRecv_ql[ic1].e;
-		    	Ug.pre[ic]  = mpiRecv_ql[ic1].p;
-		    	Ug.tem[ic]  = mpiRecv_ql[ic1].t;
-
-		    	Ug.gam[ic]  = mpiRecv_ql[ic1].ga;
-		    	Ug.mu[ic]   = mpiRecv_ql[ic1].mu;
-		    	Ug.kt[ic]   = mpiRecv_ql[ic1].kt;
-	    		if(config1.gasModel != 0)
-	    			for(ns = 0; ns<config1.nspec; ns++)
-	    			{
-	    				Ug.qs[ic][ns] =  mpiRecv_ql[ic1].qs[ns];
-	    				Ug.di[ic][ns] =  mpiRecv_ql[ic1].di[ns];
-	    			}
-		    }
-	}
 
 	/* right side */
-	if(MyID == nproc)
+	if(MyID == nproc - 1)
 	{
-		ii = ir -1;  //N+2, N+1, N ->  N+3,N+4,N+5
-		for(i=ir; i<I0; i++)
+		int Ir = config1.ni * nproc + config1.Ng;
+		ii = Ir - 1; //N+2, N+1, N -> N+3, N+4, N+5
+		for (i = Ir; i < I0; i++)
 		{
-			for(j=config1.Ng; j<jr; j++)
+			for (j = config1.Ng; j < jr; j++)
 			{
-				ic = i*J0 + j;
-				ic1 = ii*J0 + j;
+				ic = i * J0 + j;
+				ic1 = ii * J0 + j;
 
 				Ug.q[ic][0] =  Ug.q[ic1][0];
 #if defined Cavity || defined Tube
@@ -121,36 +95,6 @@ void boundX()
 			ii -= 1;
 		}
 	}
-	else
-	{
-		// the right block's  0->N+3, 1->N+4, 2->N+5
-		for(i=0; i<config1.Ng; i++)
-		{
-			ii = ir + i;
-			for(j=0; j<config1.nj; j++)
-			{
-				ic = ii*J0 + j+config1.Ng;
-				ic1 = i*config1.nj + j;
-
-				Ug.q[ic][0] = mpiRecv_qr[ic1].rho;
-				Ug.q[ic][1] = mpiRecv_qr[ic1].u;
-				Ug.q[ic][2] = mpiRecv_qr[ic1].v;
-				Ug.q[ic][3] = mpiRecv_qr[ic1].e;
-				Ug.pre[ic]  = mpiRecv_qr[ic1].p;
-				Ug.tem[ic]  = mpiRecv_qr[ic1].t;
-
-				Ug.gam[ic]  = mpiRecv_qr[ic1].ga;
-				Ug.mu[ic]   = mpiRecv_qr[ic1].mu;
-				Ug.kt[ic]   = mpiRecv_qr[ic1].kt;
-	    		if(config1.gasModel != 0)
-	    			for(ns = 0; ns<config1.nspec; ns++)
-	    			{
-	    				Ug.qs[ic][ns] = mpiRecv_qr[ic1].qs[ns];
-	    				Ug.di[ic][ns] = mpiRecv_qr[ic1].di[ns];
-	    			}
-			}
-		}
-	}
 }
 
 /*---------------------------------------------------
@@ -170,8 +114,8 @@ void boundY()
 		jj = 2*config1.Ng - 1;
 		for(j=0; j<config1.Ng; j++)
 		{
-			ic  = i*J0 + j;
-			ic1 = i*J0 + jj;
+			ic = (i + MyID * config1.ni) * J0 + j;
+			ic1 = (i + MyID * config1.ni) * J0 + jj;
 
 			Ug.q[ic][0] =  Ug.q[ic1][0];
 			Ug.q[ic][1] = -Ug.q[ic1][1];
@@ -196,8 +140,8 @@ void boundY()
 		jj = jr -1;  //N+2, N+1, N ->  N+3,N+4,N+5
 		for(j=jr; j<J0; j++)
 		{
-			ic = i*J0 + j;
-			ic1 = i*J0 + jj;
+			ic = (i + MyID * config1.ni) * J0 + j;
+			ic1 = (i + MyID * config1.ni) * J0 + jj;
 
 		    Ug.q[ic][0] =  Ug.q[ic1][0];
 #ifdef Cavity
@@ -231,8 +175,8 @@ void boundY()
 		    jj = 2*config1.Ng - 1;// 5 -> 0, 1, 2
 		    for(j=0; j<config1.Ng; j++)
 		    {
-				ic  = i*J0 + j;
-				ic1 = i*J0 + jj;
+				ic = (i + MyID * config1.ni) * J0 + j;
+				ic1 = (i + MyID * config1.ni) * J0 + jj;
 
                 //left down
 		    	Ug.q[ic][0] =  Ug.q[ic1][0];
@@ -258,8 +202,8 @@ void boundY()
 		    jj = jr -1;  //N+2 ->  N+3,N+4,N+5
 		    for(j=jr; j<J0; j++)
 		    {
-			    ic = i*J0 + j;
-			    ic1 = i*J0 + jj;
+				ic = (i + MyID * config1.ni) * J0 + j;
+				ic1 = (i + MyID * config1.ni) * J0 + jj;
 
 		        Ug.q[ic][0] =  Ug.q[ic1][0];
 		        Ug.q[ic][1] =  Ug.q[ic1][1];
@@ -281,7 +225,6 @@ void boundY()
 		    }
         }
 	}
-
 	else
 	{
 		for(i=config1.Ng; i<ir; i++)
@@ -289,8 +232,8 @@ void boundY()
 		    jj = 2*config1.Ng-1;
 		    for(j=0; j<config1.Ng; j++)
 		    {
-				ic  = i*J0 + j;
-				ic1 = i*J0 + jj;
+				ic = (i + MyID * config1.ni) * J0 + j;
+				ic1 = (i + MyID * config1.ni) * J0 + jj;
 
                 //right down
 		    	Ug.q[ic][0] =  Ug.q[ic1][0];
@@ -318,8 +261,8 @@ void boundY()
 		    jj = jr -1;  //N+2  ->  N+3,N+4,N+5
 		    for(j=jr; j<J0; j++)
 		    {
-			    ic = i*J0 + j;
-			    ic1 = i*J0 + jj;
+				ic = (i + MyID * config1.ni) * J0 + j;
+				ic1 = (i + MyID * config1.ni) * J0 + jj;
 
 		        Ug.q[ic][0] =  Ug.q[ic1][0];
 		        Ug.q[ic][1] =  Ug.q[ic1][1];
