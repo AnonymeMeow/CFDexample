@@ -83,7 +83,12 @@ inline thread_local struct strct_flux
 {
 	double* xix, * xiy, * etx, * ety, * yas, * rho,
 		* du, * dv, * dt,
-		* u, * v, * p, * e, * t, * gam, * mu, * kt, ** flux;
+		* u, * v,
+		*p, // Pressure
+		*e, // Energy
+		*t, // Temperature
+		*gam, // Heat capacity ratio (C_V/C_p)
+		* mu, * kt, ** flux;
 }U1d;
 
 /* Geometry variables (coordinations and derivatives) */
