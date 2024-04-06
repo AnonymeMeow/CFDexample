@@ -1,0 +1,43 @@
+0.
+
+1  6000  20  6000
+6.86e-4 6.86e-4  0.2 0.2
+
+28.97e-3 1.4 0.71
+1.7894e-5 273.15 110.
+1. 300. 1.01325e5
+
+1.01325e5  300.  0.  0.
+
+*----------------------------------------------------------------------*/
+Data format:
+
+[physicalProblem]
+t0
+
+[Numerics]
+iStep0 nStep nRamp Samples
+dt0 dt1 CFL0 CFL1 
+
+[FluidProperties]
+molWeight gam0 Pr0
+muRef condRef diffRef 
+MaRef temRef pRef
+
+[initial condition]
+P_1 T_1 u_1 v_1
+
+*----------------------------------------------------------------------*/
+Notes:
+
+1. "t0" represent the initial time of simulation.
+
+2. "iStep0", "nStep", "nRamp", "Samples" represent the initial time step of simulation, total time step of simulation, time steps for the program march from CFL0 to CFL1(or dt0 to dt1), intervals for the program to output results.
+
+3. "dt0", "dt1", "CFL0", "CFL1" represent the minimum time step, the maximum time step, the minimum CFL number, the maximum CFL number.
+
+4. "muRef", "suthC1", "suthC2" are the constants for Sutherland's law.
+
+5. “MaRef” is reference Mach number, which only used for the non-dimension of velocity and have no relation to the actual Mach number."temRef" and "prefRef" are reference temperature and density which only used for non-perfect gas to recover the dimension, while for perfect gas flow not used.
+
+*----------------------------------------------------------------------*/

@@ -1,2 +1,4 @@
 build/
-.vscode/
+
+outInfo.dat
+nstep*_field.dat

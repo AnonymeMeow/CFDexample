@@ -1,0 +1,14 @@
+80 80 3
+0.1  0.1
+0.1  0.1
+
+/*-----------------data format---------------*/
+ni, nj, Ng
+L_x, L_y
+non_x, non_y
+
+/*-----------------Notes---------------*/
+
+1. 'ni' and 'nj' are the grid points in x and y direction; 'Ng' is the ghost cells.
+2. 'L_x' and 'L_y' are length of the rectangle in x and y direction.
+3. 'non_x' and 'non_y' are the non-dimensionalized value of L_x and L_y.
