@@ -8,8 +8,8 @@
 
 #define SCARF_DECLSPEC
 
-#include "chemdata.hpp"
 #include "comm.hpp"
+#include "chemdata.hpp"
 
 void grid();
 void readjob();

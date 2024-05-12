@@ -46,11 +46,11 @@ void gettherm(int nc, double **q, double **qs, double *p,
 			if( !(tem_min<tem && tem<tem_max))
 			{
 				outId = fopen("outInfo.dat", "a");
-			fprintf(outId, "T = %f (K) at at i=%d, j=%d\n", tem, ic/config1.nj, ic%config1.nj);
-			fclose(outId);
-			printf("T = %f (K) at at i=%d, j=%d\n", tem, ic/config1.nj, ic%config1.nj);
-			printf("The temperature may be unphysical for ideal gas model \n");
-			exit(41);
+				fprintf(outId, "T = %f (K) at at i=%d, j=%d\n", tem, ic/config1.nj, ic%config1.nj);
+				fclose(outId);
+				printf("T = %f (K) at at i=%d, j=%d\n", tem, ic/config1.nj, ic%config1.nj);
+				printf("The temperature may be unphysical for ideal gas model \n");
+				exit(41);
 			}
 		}
 	}
